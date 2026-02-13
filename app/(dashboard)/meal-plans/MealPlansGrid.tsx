@@ -1,0 +1,212 @@
+import { Calendar, Check, Trash2, Download, UserPlus, UserCheck, Pencil, Utensils, Apple, Coffee, Pizza } from 'lucide-react';
+import Link from 'next/link';
+
+interface PlanType {
+    id: string;
+    name: string;
+    description?: string;
+    type?: string;
+    status?: string;
+    created_at: string;
+    updated_at: string;
+    client: { id: string; name: string; type: 'athlete' | 'gym' } | null;
+}
+
+interface MealPlansGridProps {
+    programs: PlanType[]; // keeping generic name to avoid massive refactor of prop passing
+    selectedPrograms: Set<string>;
+    isSelectionMode: boolean;
+    toggleSelection: (id: string) => void;
+    promptDelete: (id: string) => void;
+    onExport: (programId: string) => void;
+    onAssign: (program: PlanType) => void;
+    CARD_GRADIENTS: string[];
+    CARD_ICONS: any[]; // We'll ignore passed icons and use local ones if needed, or pass Nutrition icons
+}
+
+// Nutrition themed icons
+const NUTRITION_ICONS = [Utensils, Apple, Coffee, Pizza];
+
+export function MealPlansGrid({
+    programs,
+    selectedPrograms,
+    isSelectionMode,
+    toggleSelection,
+    promptDelete,
+    onExport,
+    onAssign,
+    CARD_GRADIENTS,
+    // CARD_ICONS
+}: MealPlansGridProps) {
+
+    // Helper inside component
+    const getCardStyle = (index: number) => {
+        const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
+        const Icon = NUTRITION_ICONS[index % NUTRITION_ICONS.length];
+        return { gradient, Icon };
+    };
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {programs.map((program, index) => {
+                const { gradient, Icon } = getCardStyle(index);
+                const createdDate = new Date(program.created_at).toLocaleDateString('es-ES', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                const updatedDate = new Date(program.updated_at).toLocaleDateString('es-ES', {
+                    day: 'numeric',
+                    month: 'short'
+                });
+
+                const isSelected = selectedPrograms.has(program.id);
+
+                return (
+                    <div
+                        key={program.id}
+                        onClick={() => isSelectionMode && toggleSelection(program.id)}
+                        className={`
+                            group relative overflow-hidden rounded-2xl
+                            bg-gradient-to-br ${gradient}
+                            transition-all duration-300 
+                            shadow-lg hover:shadow-2xl hover:-translate-y-2
+                            cursor-pointer
+                            ${isSelected ? 'ring-4 ring-offset-2 ring-offset-[#0f1115] ring-cv-primary scale-[0.98]' : ''}
+                        `}
+                    >
+                        {/* Overlay sutil para hover */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
+
+                        {/* Efecto de brillo */}
+                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                        {/* Selection Checkbox */}
+                        <div
+                            className={`absolute top-4 right-4 z-20 transition-all duration-200 ${isSelectionMode || isSelected ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
+                                }`}
+                        >
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleSelection(program.id);
+                                }}
+                                className={`
+                                    group w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm transition-all duration-200 border-2
+                                    ${isSelected
+                                        ? 'bg-white border-white text-cv-primary shadow-lg'
+                                        : 'bg-black/10 border-white/30 text-transparent hover:bg-white hover:border-white hover:text-cv-primary'
+                                    }
+                                `}
+                            >
+                                <Check size={16} strokeWidth={3} className={`transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+                            </button>
+                        </div>
+
+                        {/* Assigned User Badge (Apple Style) */}
+                        {program.client && (
+                            <div className="absolute top-4 right-14 z-20 flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/10 shadow-sm transition-all duration-300">
+                                <div className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center">
+                                    <UserCheck size={12} className="text-white" />
+                                </div>
+                                <span className="text-xs font-semibold text-white tracking-wide shadow-black/20 drop-shadow-sm">{program.client.name}</span>
+                            </div>
+                        )}
+
+                        <Link
+                            href={isSelectionMode ? '#' : `/editor/${program.id}`}
+                            onClick={(e) => isSelectionMode && e.preventDefault()}
+                            className="relative z-10 block p-6"
+                        >
+                            {/* Header con ícono */}
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-lg">
+                                    <Icon size={28} />
+                                </div>
+                            </div>
+
+                            {/* Título */}
+                            <h3 className="text-xl font-bold text-white mb-2 line-clamp-2">
+                                {program.name}
+                            </h3>
+
+                            {/* Información de fechas */}
+                            <div className="flex items-center gap-2 text-white/80 text-sm mb-4">
+                                <Calendar size={14} />
+                                <span className="whitespace-nowrap">Creado {createdDate}</span>
+                            </div>
+
+                            {/* Details (Calories, etc) - optional */}
+                            {program.description && (
+                                <p className="text-white/70 text-xs line-clamp-2 mb-4 h-8">
+                                    {program.description}
+                                </p>
+                            )}
+
+                            {/* Footer con última actualización */}
+                            <div className="pt-4 border-t border-white/20">
+                                <div className="flex items-center justify-between gap-4">
+                                    <span className="text-xs text-white/70 whitespace-nowrap">
+                                        Actualizado {updatedDate}
+                                    </span>
+                                    <div className="flex gap-2 shrink-0">
+                                        {!isSelectionMode && (
+                                            <>
+                                                {/* <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        onExport(program.id);
+                                                    }}
+                                                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-cv-accent/80 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-white transition-all duration-200"
+                                                    title="Exportar"
+                                                >
+                                                    <Download size={14} />
+                                                </button> */}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        promptDelete(program.id);
+                                                    }}
+                                                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-red-500/80 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-white transition-all duration-200"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                                {/* <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        onAssign(program);
+                                                    }}
+                                                    className={`w-9 h-9 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-200 ${program.client
+                                                        ? 'bg-cv-accent text-white hover:bg-cv-accent/90 shadow-lg shadow-cv-accent/20'
+                                                        : 'bg-white/20 text-white hover:bg-white/30'
+                                                        }`}
+                                                    title={program.client ? `Reasignar (${program.client.name})` : "Asignar"}
+                                                >
+                                                    {program.client ? (
+                                                        <UserCheck size={18} />
+                                                    ) : (
+                                                        <UserPlus size={18} />
+                                                    )}
+                                                </button> */}
+                                                <button
+                                                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-white transition-all duration-200"
+                                                    title="Editar"
+                                                >
+                                                    <Pencil size={14} />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
