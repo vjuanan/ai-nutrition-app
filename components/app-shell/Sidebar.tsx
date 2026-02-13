@@ -25,7 +25,7 @@ interface NavItem {
 
 // Unified nav items - no more context filtering
 const navItems: NavItem[] = [
-    { label: 'Panel', href: '/', icon: <LayoutDashboard size={20} /> },
+    { label: 'Mi Panel', href: '/', icon: <LayoutDashboard size={20} /> },
     { label: 'Pacientes', href: '/athletes', icon: <Users size={20} /> },
     { label: 'Clínicas', href: '/gyms', icon: <Building2 size={20} /> },
     { label: 'Alimentos', href: '/foods', icon: <Dumbbell size={20} /> }, // Was Exercises
