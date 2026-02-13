@@ -1,31 +1,30 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { searchExercises } from '@/lib/actions';
-import { useExerciseCache } from '@/hooks/useExerciseCache';
+import { searchFoods } from '@/lib/actions';
+import { useFoodCache } from '@/hooks/useFoodCache';
 import { Search, Loader2, Plus, AlertCircle } from 'lucide-react';
-import { ExerciseCreationModal } from './ExerciseCreationModal';
+import { FoodCreationModal } from './FoodCreationModal';
 
-interface SmartExerciseInputProps {
+interface SmartFoodInputProps {
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
     className?: string;
     autoFocus?: boolean;
     inputRef?: React.RefObject<HTMLInputElement>;
-    onSelect?: (exercise: any) => void;
+    onSelect?: (food: any) => void;
 }
 
-// Force redeploy
-export function SmartExerciseInput({
+export function SmartFoodInput({
     value,
     onChange,
-    placeholder = "Buscar ejercicio...",
+    placeholder = "Buscar alimento...",
     className,
     autoFocus,
     inputRef,
     onSelect
-}: SmartExerciseInputProps) {
+}: SmartFoodInputProps) {
     const [query, setQuery] = useState(value);
     const [results, setResults] = useState<any[]>([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -38,7 +37,7 @@ export function SmartExerciseInput({
     const wrapperRef = useRef<HTMLDivElement>(null);
 
     // Use global cache hook
-    const { searchLocal, isLoading: isCacheLoading } = useExerciseCache();
+    const { searchLocal, isLoading: isCacheLoading } = useFoodCache();
 
     // Debounce Search (now local)
     useEffect(() => {
