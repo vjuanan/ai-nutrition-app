@@ -81,8 +81,10 @@ export async function getDashboardStats() {
             showStats: false,
             userName,
             athletes: 0,
+            gyms: 0,
             activePlans: 0,
-            totalMeals: 0
+            totalMeals: 0,
+            totalFoods: 0
         };
     }
 
@@ -91,6 +93,7 @@ export async function getDashboardStats() {
     // Run parallel queries
     const [
         { count: athletes },
+        { count: gyms },
         { count: plans },
         { count: foods }
     ] = await Promise.all([
@@ -98,10 +101,14 @@ export async function getDashboardStats() {
         isAdmin
             ? adminSupabase.from('clients').select('*', { count: 'exact', head: true }).eq('type', 'athlete')
             : adminSupabase.from('clients').select('*', { count: 'exact', head: true }).eq('type', 'athlete').eq('coach_id', coachId!),
+        // Gyms count
+        isAdmin
+            ? adminSupabase.from('clients').select('*', { count: 'exact', head: true }).eq('type', 'gym')
+            : adminSupabase.from('clients').select('*', { count: 'exact', head: true }).eq('type', 'gym').eq('coach_id', coachId!),
         // Plans count
         isAdmin
             ? adminSupabase.from('nutritional_plans').select('*', { count: 'exact', head: true }).eq('is_active', true)
-            : adminSupabase.from('nutritional_plans').select('*', { count: 'exact', head: true }).eq('is_active', true).eq('user_id', user?.id), // Assuming user_id is the owner
+            : adminSupabase.from('nutritional_plans').select('*', { count: 'exact', head: true }).eq('is_active', true).eq('user_id', user?.id),
         // Foods count (Global)
         adminSupabase.from('foods').select('*', { count: 'exact', head: true })
     ]);
@@ -110,6 +117,7 @@ export async function getDashboardStats() {
         showStats: true,
         userName,
         athletes: athletes || 0,
+        gyms: gyms || 0,
         activePlans: plans || 0,
         totalMeals: 0, // Placeholder
         totalFoods: foods || 0
@@ -192,6 +200,11 @@ export async function createNutritionalPlan(
     options?: {
         description?: string;
         type?: string;
+        globalFocus?: string;
+        startDate?: string;
+        endDate?: string;
+        duration?: number;
+        weeklyFocusLabels?: string[];
     }
 ) {
     const supabase = createServerClient();
@@ -200,13 +213,19 @@ export async function createNutritionalPlan(
     if (!user) return { error: 'Unauthorized' };
 
     try {
+        // Map wizard options to schema
+        let finalDescription = options?.description || options?.globalFocus;
+        if (options?.startDate && options?.duration) {
+            finalDescription = `${finalDescription ? finalDescription + '\n\n' : ''}Start: ${options.startDate}, Duration: ${options.duration} weeks`;
+        }
+
         // 1. Create Plan Header
         const { data: plan, error: planError } = await supabase
             .from('nutritional_plans')
             .insert({
                 user_id: user.id, // Owner
                 name,
-                description: options?.description || null,
+                description: finalDescription || null,
                 type: options?.type || null,
                 is_active: true,
                 client_id: clientId || null
@@ -526,6 +545,65 @@ export async function getClient(id: string) {
     return null;
 }
 
+export async function createClient(clientData: {
+    type: 'athlete' | 'gym';
+    name: string;
+    email?: string;
+    details?: any;
+    coach_id?: string;
+    gym_id?: string;
+}) {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { error: 'Unauthorized' };
+
+    let coachId = clientData.coach_id;
+    if (!coachId) {
+        const { data: coach } = await supabase
+            .from('coaches')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+        coachId = coach?.id;
+    }
+
+    const { data, error } = await supabase
+        .from('clients')
+        .insert({
+            coach_id: coachId,
+            gym_id: clientData.gym_id || null,
+            type: clientData.type,
+            name: clientData.name,
+            email: clientData.email,
+            details: clientData.details || {},
+            payment_status: 'pending',
+            is_active: true
+        })
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error creating client:', error);
+        return { error: error.message };
+    }
+
+    revalidatePath('/athletes');
+    revalidatePath('/gyms');
+    return { data };
+}
+
+export async function deleteClient(id: string) {
+    const supabase = createServerClient();
+    const { error } = await supabase.from('clients').delete().eq('id', id);
+
+    if (error) return { error: error.message };
+
+    revalidatePath('/athletes');
+    revalidatePath('/gyms');
+    return { success: true };
+}
+
 // Helper to ensure coach exists (Simplified for Nutrition)
 async function ensureCoach(supabase: any) {
     // ... (Keep existing logic if needed, but for now assuming users are coaches)
@@ -533,4 +611,299 @@ async function ensureCoach(supabase: any) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
     return user.id; // Or fetch coach profile
+}
+// ==========================================
+// ADMIN USER ACTIONS
+// ==========================================
+
+export async function getProfiles() {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) return [];
+    return data;
+}
+
+export async function updateUserRole(userId: string, role: string) {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const adminSupabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { error } = await adminSupabase
+        .from('profiles')
+        .update({ role })
+        .eq('id', userId);
+
+    if (error) throw new Error(error.message);
+    revalidatePath('/admin/users');
+    return { success: true };
+}
+
+export async function deleteUser(userId: string) {
+    const adminSupabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { error } = await adminSupabase.auth.admin.deleteUser(userId);
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/admin/users');
+    return { success: true };
+}
+
+export async function createUser(userData: any) {
+    const adminSupabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data, error } = await adminSupabase.auth.admin.createUser({
+        email: userData.email,
+        password: userData.password || 'tempPass123!',
+        user_metadata: { full_name: userData.fullName },
+        email_confirm: true
+    });
+
+    if (error) throw new Error(error.message);
+
+    if (userData.role && data.user) {
+        // Allow some time for trigger to create profile, or update it if it exists
+        // A better way is to wait or retry, but for valid MVP:
+        await adminSupabase.from('profiles').update({ role: userData.role }).eq('id', data.user.id);
+    }
+
+    revalidatePath('/admin/users');
+    return { success: true, message: 'Usuario creado' };
+}
+
+export async function resetUserPassword(userId: string) {
+    const adminSupabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: { user }, error: fetchError } = await adminSupabase.auth.admin.getUserById(userId);
+    if (fetchError || !user || !user.email) throw new Error("User not found or no email");
+
+    const { error } = await adminSupabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/callback?next=/account/settings`,
+    });
+
+    if (error) throw new Error(error.message);
+    return { success: true, message: 'Correo de recuperación enviado' };
+}
+
+export async function getClientPrograms(clientId: string) {
+    const supabase = createServerClient();
+
+    // Fetch plans assigned to this client
+    const { data, error } = await supabase
+        .from('nutritional_plans')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('updated_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching client programs:', error);
+        return [];
+    }
+    return data;
+}
+
+export async function getCoaches() {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+        .from('coaches')
+        .select('*');
+
+    if (error) return [];
+    return data;
+}
+
+export async function assignClientToCoach(clientId: string, coachId: string) {
+    const supabase = createServerClient();
+    const { error } = await supabase
+        .from('clients')
+        .update({ coach_id: coachId })
+        .eq('id', clientId);
+
+    if (error) throw new Error(error.message);
+    revalidatePath('/athletes');
+    return { success: true };
+}
+
+export async function updateAthleteProfile(userId: string, profileData: any) {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { error: 'Unauthorized' };
+
+    const { data, error } = await supabase
+        .from('profiles')
+        .update(profileData)
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating profile:', error);
+        return { error: error.message };
+    }
+
+    revalidatePath('/account/settings');
+    return { success: true, data };
+}
+
+export async function getFoods({
+    query,
+    category,
+    page = 1,
+    limit = 50
+}: {
+    query?: string;
+    category?: string;
+    page?: number;
+    limit?: number;
+} = {}) {
+    const supabase = createServerClient();
+    let queryBuilder = supabase
+        .from('foods')
+        .select('*', { count: 'exact' });
+
+    if (query) {
+        queryBuilder = queryBuilder.ilike('name', `%${query}%`);
+    }
+
+    if (category && category !== 'all') {
+        queryBuilder = queryBuilder.eq('category', category);
+    }
+
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    const { data, error, count } = await queryBuilder
+        .range(from, to)
+        .order('name');
+
+    if (error) {
+        console.error('Error fetching foods:', error);
+        return { data: [], count: 0 };
+    }
+
+    return { data, count };
+}
+
+export async function getEquipmentCatalog() {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+        .from('equipment_catalog')
+        .select('*')
+        .order('category');
+
+    if (error) return [];
+    return data;
+}
+
+export async function getTrainingMethodologies() {
+    const supabase = createServerClient();
+    const { data, error } = await supabase.from('training_methodologies').select('*');
+    if (error) return [];
+    return data;
+}
+
+export async function updateTrainingMethodology(id: string, updates: any) {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+        .from('training_methodologies')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) return { error: error.message };
+    revalidatePath('/knowledge');
+    return { data };
+}
+
+// Aliases for legacy compatibility
+// Wrapper functions instead of aliases to avoid Next.js $$id redefine bug
+export async function getPrograms() {
+    return getNutritionalPlans();
+}
+
+export async function createProgram(
+    name: string,
+    type: string | null,
+    options?: any
+) {
+    return createNutritionalPlan(name, type, options);
+}
+
+export async function getCoachStatus() {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { isAthlete: false, hasCoach: false };
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (profile?.role === 'athlete') {
+        // Find client record by email (assuming email sync)
+        const { data: client } = await supabase
+            .from('clients')
+            .select('coach_id')
+            .eq('email', user.email)
+            .single();
+
+        return {
+            isAthlete: true,
+            hasCoach: !!client?.coach_id
+        };
+    }
+
+    return { isAthlete: false, hasCoach: false };
+}
+
+export async function updateClient(clientId: string, updates: any) {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { error: 'Unauthorized' };
+
+    const { data, error } = await supabase
+        .from('clients')
+        .update(updates)
+        .eq('id', clientId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating client:', error);
+        return { error: error.message };
+    }
+
+    revalidatePath('/athletes');
+    revalidatePath('/gyms');
+    return { data };
+}
+
+export async function updateGymProfile(gymId: string, updates: any) {
+    // Re-use updateClient as they are the same table
+    return updateClient(gymId, updates);
 }

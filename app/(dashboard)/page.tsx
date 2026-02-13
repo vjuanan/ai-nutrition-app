@@ -22,7 +22,15 @@ import { useRouter } from 'next/navigation';
 export default function DashboardPage() {
     const { currentView } = useAppStore();
     const [programs, setPrograms] = useState<any[]>([]);
-    const [stats, setStats] = useState({ showStats: true, athletes: 0, gyms: 0, activePrograms: 0, totalBlocks: 0, userName: 'Coach' });
+    const [stats, setStats] = useState({
+        showStats: true,
+        athletes: 0,
+        gyms: 0,
+        activePlans: 0,
+        totalMeals: 0,
+        totalFoods: 0,
+        userName: 'Coach'
+    });
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
@@ -82,16 +90,16 @@ export default function DashboardPage() {
                         />
                         <StatCard
                             icon={<Dumbbell size={20} />}
-                            label="Programas Activos"
-                            value={stats.activePrograms}
+                            label="Planes Activos"
+                            value={stats.activePlans}
                             trend="En curso"
                             color="text-cv-accent"
                         />
                         <StatCard
                             icon={<Calendar size={20} />}
-                            label="Bloques Totales"
-                            value={stats.totalBlocks}
-                            trend="Sesiones diseñadas"
+                            label="Comidas Totales"
+                            value={stats.totalMeals}
+                            trend="Planificadas"
                             color="text-green-400"
                         />
                     </div>

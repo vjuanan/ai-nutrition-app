@@ -88,6 +88,7 @@ interface DietStoreState {
     deleteMeal: (mealId: string) => void;
     reorderMeals: (dayId: string, mealIds: string[]) => void;
     duplicateMeal: (mealId: string, targetDayId?: string) => void;
+    moveMealToDay: (mealId: string, targetDayId: string) => void;
 
     // Day operations
     updateDay: (dayId: string, updates: Partial<DraftDay>) => void;
@@ -249,6 +250,54 @@ export const useDietStore = create<DietStoreState>()(
                                     id: tempId,
                                     tempId,
                                     day_id: finalTargetDayId,
+                                    order: day.meals.length,
+                                    isDirty: true
+                                }
+                            ],
+                            isDirty: true
+                        };
+                    }
+                    return day;
+                });
+
+                set({ days: updatedDays, hasUnsavedChanges: true });
+            },
+
+            moveMealToDay: (mealId, targetDayId) => {
+                const { days } = get();
+                let sourceMeal: DraftMeal | null = null;
+                let sourceDayId: string | null = null;
+
+                // Find meal and source day
+                for (const day of days) {
+                    const meal = day.meals.find(m => m.id === mealId);
+                    if (meal) {
+                        sourceMeal = meal;
+                        sourceDayId = day.id;
+                        break;
+                    }
+                }
+
+                if (!sourceMeal || !sourceDayId || sourceDayId === targetDayId) return;
+
+                const updatedDays = days.map(day => {
+                    // Remove from source
+                    if (day.id === sourceDayId) {
+                        return {
+                            ...day,
+                            meals: day.meals.filter(m => m.id !== mealId),
+                            isDirty: true
+                        };
+                    }
+                    // Add to target
+                    if (day.id === targetDayId) {
+                        return {
+                            ...day,
+                            meals: [
+                                ...day.meals,
+                                {
+                                    ...sourceMeal!,
+                                    day_id: targetDayId,
                                     order: day.meals.length,
                                     isDirty: true
                                 }

@@ -46,6 +46,29 @@ export interface Profile {
     updated_at: string;
 }
 
+export interface Client {
+    id: string;
+    user_id: string | null;
+    coach_id: string | null;
+    email: string;
+    full_name: string;
+    status: 'active' | 'inactive' | 'pending';
+    type: 'athlete' | 'gym';
+
+    // Gym specific fields
+    gym_type?: string;
+    location?: string;
+    member_count?: string;
+    equipment?: string;
+    operating_hours?: string;
+    website?: string;
+    phone?: string;
+    details?: any;
+
+    created_at: string;
+    updated_at: string;
+}
+
 export interface NutritionalPlan {
     id: string;
     user_id: string; // Owner (Coach/User)
@@ -53,6 +76,8 @@ export interface NutritionalPlan {
     description: string | null;
     type: string | null; // Keto, Paleo...
     is_active: boolean;
+
+    client_id?: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -110,7 +135,43 @@ export interface Food {
     fats: number;
     unit: string; // 'g', 'ml', 'unit'
     serving_size: number;
+    category?: string; // Added to match UI
     created_at: string;
+}
+
+export interface EquipmentCatalog {
+    id: string;
+    name: string;
+    category: string;
+    description: string | null;
+    image_url: string | null;
+}
+
+export interface TrainingPrinciple {
+    id: string;
+    title: string;
+    content: any;
+    category: string;
+    objective?: string;
+    author?: string;
+    decision_framework?: string;
+    context_factors?: string[];
+    tags?: string[];
+    created_at: string;
+}
+
+export interface TrainingMethodology {
+    id: string;
+    name: string;
+    category: string;
+    description: string;
+    icon: string;
+    code?: string;
+    form_config: {
+        fields: Array<{ key: string; label: string; type: string }>;
+        [key: string]: any;
+    };
+    default_values: any;
 }
 
 // Legacy mappings/aliases to help refactor (Optional, remove if confident)

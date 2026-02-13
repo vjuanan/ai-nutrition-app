@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -104,9 +106,11 @@ export function SettingsForm({ user, initialProfile }: SettingsFormProps) {
                                 <div className="relative group flex-shrink-0">
                                     <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-cv-border bg-cv-bg-tertiary">
                                         {profile.avatar_url ? (
-                                            <img
+                                            <Image
                                                 src={profile.avatar_url}
                                                 alt="Profile"
+                                                width={64}
+                                                height={64}
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (

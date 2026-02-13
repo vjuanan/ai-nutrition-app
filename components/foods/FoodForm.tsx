@@ -9,8 +9,9 @@ import { Food } from '@/lib/supabase/types';
 
 interface FoodFormProps {
     food?: Food; // Optional for edit mode
+    initialName?: string;
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess: (food?: any) => void;
 }
 
 const CATEGORIES = [
@@ -23,12 +24,12 @@ const CATEGORIES = [
     { value: 'Otros', label: 'Otros' }
 ];
 
-export function FoodForm({ food, onClose, onSuccess }: FoodFormProps) {
+export function FoodForm({ food, initialName, onClose, onSuccess }: FoodFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     const { register, handleSubmit, formState: { errors } } = useForm({
         defaultValues: {
-            name: food?.name || '',
+            name: food?.name || initialName || '',
             brand: food?.brand || '',
             category: food?.category || 'Proteína',
             calories: food?.calories || 0,
@@ -64,7 +65,7 @@ export function FoodForm({ food, onClose, onSuccess }: FoodFormProps) {
                 toast.error(`Error: ${result.error}`);
             } else {
                 toast.success(food ? 'Alimento actualizado' : 'Alimento creado');
-                onSuccess();
+                onSuccess(result.data);
             }
         } catch (error) {
             console.error(error);

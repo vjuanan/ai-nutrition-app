@@ -91,13 +91,14 @@ export function SmartFoodInput({
         }
     };
 
-    const handleCreateSuccess = (exerciseName: string) => {
-        setQuery(exerciseName);
-        onChange(exerciseName);
+    const handleCreateSuccess = (food: any) => {
+        const name = food.name || food;
+        setQuery(name);
+        onChange(name);
         setShowModal(false);
 
         if (onSelect) {
-            onSelect({ name: exerciseName });
+            onSelect(food);
         }
     }
 
@@ -189,7 +190,7 @@ export function SmartFoodInput({
                 </div>
             )}
 
-            <ExerciseCreationModal
+            <FoodCreationModal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
                 initialName={query}

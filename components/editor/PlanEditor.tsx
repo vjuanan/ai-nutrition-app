@@ -38,7 +38,7 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
         mealBuilderDayId,
         exitMealBuilder,
         hasUnsavedChanges,
-        setHasUnsavedChanges
+        markAsClean
     } = useDietStore();
 
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -106,7 +106,6 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
             // But DraftDay matches mostly.
             // Wait, savePlanChanges logic needs to be verified.
             // For now, assume we just pass planId and the days structure.
-
             // Actually, we should probably implement a store action 'savePlan' that calls the server action.
             // Or just call it here.
 
@@ -114,7 +113,7 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
             const success = await savePlanChanges(planId, days as any); // Cast for now
             if (success) {
                 toast.success('Plan guardado correctamente');
-                setHasUnsavedChanges(false);
+                markAsClean();
             } else {
                 toast.error('Error al guardar el plan');
             }
@@ -141,7 +140,7 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
                 {/* Navbar */}
                 <div className="h-14 bg-white dark:bg-cv-bg-secondary border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
-                        <Link href="/plans" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                        <Link href="/meal-plans" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                             <ArrowLeft size={18} />
                         </Link>
                         <div>
@@ -188,9 +187,9 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
                         /* Weekly Grid View */
                         <div className="h-full overflow-auto p-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {days.sort((a, b) => a.day_number - b.day_number).map((day) => (
+                                {days.sort((a, b) => a.order - b.order).map((day) => (
                                     <div key={day.id} className="min-h-[400px]">
-                                        <PlanDayCard day={day} dayName={day.name || `Día ${day.day_number}`} />
+                                        <PlanDayCard day={day as any} dayName={day.name || `Día ${day.order + 1}`} />
                                     </div>
                                 ))}
                             </div>

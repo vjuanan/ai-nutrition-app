@@ -19,8 +19,12 @@ const CATEGORIES = [
     { value: 'Verduras', label: 'Verduras' }
 ];
 
+interface FoodWithCategory extends Food {
+    category?: string;
+}
+
 interface FoodListProps {
-    initialFoods: Food[];
+    initialFoods: FoodWithCategory[];
     totalCount: number;
     initialCategory?: string;
     initialQuery?: string;
@@ -39,24 +43,16 @@ export function FoodList({
 
     // Feature States
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [editingFood, setEditingFood] = useState<Food | null>(null);
+    const [editingFood, setEditingFood] = useState<FoodWithCategory | null>(null);
 
     // Multi-select States
     const [isSelectMode, setIsSelectMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-    // Debounce search update
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            if (query !== initialQuery) {
-                handleSearch(query);
-            }
-        }, 300);
-        return () => clearTimeout(timeoutId);
-    }, [query]);
+
 
     // Update URL when filtering
-    function updateUrl(newQuery: string, newCategory: string) {
+    const updateUrl = (newQuery: string, newCategory: string) => {
         const params = new URLSearchParams(searchParams.toString());
 
         if (newQuery) params.set('q', newQuery);
@@ -66,11 +62,21 @@ export function FoodList({
         else params.delete('category');
 
         router.replace(`?${params.toString()}`, { scroll: false });
-    }
+    };
 
     const handleSearch = (term: string) => {
         updateUrl(term, category);
     };
+
+    // Debounce search update
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (query !== initialQuery) {
+                updateUrl(query, category);
+            }
+        }, 300);
+        return () => clearTimeout(timeoutId);
+    }, [query, category, initialQuery, router, searchParams]); // Added dependencies, removed handleSearch wrapper to simplify
 
     const handleCategoryChange = (cat: string) => {
         setCategory(cat);
@@ -320,7 +326,7 @@ export function FoodList({
             >
                 {editingFood && (
                     <FoodForm
-                        food={editingFood}
+                        food={editingFood as Food}
                         onClose={() => setEditingFood(null)}
                         onSuccess={() => {
                             setEditingFood(null);
