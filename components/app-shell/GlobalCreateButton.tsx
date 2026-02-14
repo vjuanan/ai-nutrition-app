@@ -7,9 +7,12 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Plus, Users, Building2, Dumbbell, Loader2 } from 'lucide-react';
 import { ProgramSetupWizard } from './ProgramSetupWizard';
 
+import { NutritionalPlanWizard } from './NutritionalPlanWizard';
+
 export function GlobalCreateButton() {
     const [isOpen, setIsOpen] = useState(false);
     const [isWizardOpen, setIsWizardOpen] = useState(false);
+    const [isNutritionalWizardOpen, setIsNutritionalWizardOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
     const pathname = usePathname();
@@ -29,27 +32,32 @@ export function GlobalCreateButton() {
 
     const handleCreateProgram = () => {
         setIsOpen(false);
-        setIsWizardOpen(true);
+        // Check context to decide which wizard to open
+        if (pathname.includes('/meal-plans') || pathname.includes('/foods') || pathname.includes('/recipes')) {
+            setIsNutritionalWizardOpen(true);
+        } else {
+            setIsWizardOpen(true);
+        }
     };
 
     const menuItems = [
         {
-            label: 'Nuevo Atleta',
+            label: 'Nuevo Paciente', // Updated label for Nutrition
             icon: <Users size={16} />,
             href: '/athletes/new',
             color: 'text-blue-400'
         },
         {
-            label: 'Nuevo Gimnasio',
+            label: 'Nueva Clínica', // Updated label for Nutrition
             icon: <Building2 size={16} />,
             href: '/gyms/new',
             color: 'text-purple-400'
         },
         {
-            label: 'Nuevo Programa',
+            label: 'Nuevo Plan', // Updated label
             icon: <Dumbbell size={16} />,
             action: handleCreateProgram,
-            color: 'text-cv-accent'
+            color: 'text-cv-accent' // Or green?
         },
     ];
 
@@ -60,7 +68,9 @@ export function GlobalCreateButton() {
                 <button
                     onClick={() => {
                         if (pathname === '/programs') {
-                            handleCreateProgram();
+                            setIsWizardOpen(true);
+                        } else if (pathname === '/meal-plans') {
+                            setIsNutritionalWizardOpen(true);
                         } else {
                             setIsOpen(!isOpen);
                         }
@@ -100,10 +110,16 @@ export function GlobalCreateButton() {
                 )}
             </div>
 
-            {/* Program Setup Wizard Modal */}
+            {/* Program Setup Wizard Modal (Training) */}
             <ProgramSetupWizard
                 isOpen={isWizardOpen}
                 onClose={() => setIsWizardOpen(false)}
+            />
+
+            {/* Nutritional Plan Wizard Modal */}
+            <NutritionalPlanWizard
+                isOpen={isNutritionalWizardOpen}
+                onClose={() => setIsNutritionalWizardOpen(false)}
             />
         </>
     );

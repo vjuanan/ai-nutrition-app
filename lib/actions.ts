@@ -212,6 +212,14 @@ export async function createNutritionalPlan(
 
     if (!user) return { error: 'Unauthorized' };
 
+    // Use admin client to bypass RLS for creation if needed
+    const adminSupabase = process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+        )
+        : supabase;
+
     try {
         // Map wizard options to schema
         let finalDescription = options?.description || options?.globalFocus;
@@ -220,7 +228,7 @@ export async function createNutritionalPlan(
         }
 
         // 1. Create Plan Header
-        const { data: plan, error: planError } = await supabase
+        const { data: plan, error: planError } = await adminSupabase
             .from('nutritional_plans')
             .insert({
                 user_id: user.id, // Owner
@@ -238,14 +246,12 @@ export async function createNutritionalPlan(
         // 2. Create Default Days (Monday - Sunday)
         const daysToInsert = Array.from({ length: 7 }).map((_, i) => ({
             plan_id: plan.id,
-            day_of_week: i, // 0=Sun, 1=Mon... or 0=Mon? Let's say 1=Mon, 7=Sun or 0=Mon.
-            // Let's use 0=Monday for simplicity in array index, or standard JS 0=Sunday.
-            // Let's stick to 0=Monday, 6=Sunday for UI mapping.
+            day_of_week: i,
             name: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][i],
             order: i
         }));
 
-        const { error: daysError } = await supabase
+        const { error: daysError } = await adminSupabase
             .from('plan_days')
             .insert(daysToInsert);
 
