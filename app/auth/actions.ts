@@ -127,8 +127,10 @@ export async function checkEmailRegistered(email: string) {
 
         } catch (fallbackError: any) {
             console.error('[checkEmailRegistered] All strategies failed:', fallbackError);
-            // Fail CLOSED - don't allow registration if we can't verify
-            throw new Error('No pudimos verificar el email. Por favor, intenta más tarde.');
+            // FAIL OPEN: Allow registration to proceed if we can't verify
+            // Supabase will handle duplicate emails gracefully (or send magic link)
+            console.warn('[checkEmailRegistered] Failing open - assuming email does not exist');
+            return { exists: false };
         }
     }
 
