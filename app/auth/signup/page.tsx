@@ -44,23 +44,14 @@ export default function SignUpPage() {
         }
 
         try {
-            // Check if email is already registered - call RPC directly from client
-            const { data: emailExists, error: rpcError } = await supabase.rpc('check_email_exists', {
-                email_input: email.toLowerCase().trim()
-            });
+            // Check if email is already registered -> REMOVED CLIENT-SIDE RPC CHECK
+            // We rely on Supabase Auth to handle duplicates gracefully
+            // const { data: emailExists, error: rpcError } = await supabase.rpc('check_email_exists', {
+            //     email_input: email.toLowerCase().trim()
+            // });
 
-            if (rpcError) {
-                console.error('Email check RPC error:', rpcError);
-                setError('Error al verificar el email. Por favor, intenta más tarde.');
-                setIsLoading(false);
-                return;
-            }
-
-            if (emailExists) {
-                setError('Este correo electrónico ya está registrado. Por favor, inicia sesión.');
-                setIsLoading(false);
-                return;
-            }
+            // if (rpcError) { ... }
+            // if (emailExists) { ... }
 
             const { error: signUpError } = await supabase.auth.signUp({
                 email,
