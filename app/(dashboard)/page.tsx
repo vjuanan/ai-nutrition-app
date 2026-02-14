@@ -65,7 +65,7 @@ export default function DashboardPage() {
                             Bienvenido, {stats.userName}
                         </h1>
                         <p className="text-cv-text-secondary mt-1">
-                            Resumen de actividad de tus {currentView === 'athletes' ? 'atletas' : 'gimnasios'} hoy.
+                            Resumen de actividad de tus {currentView === 'athletes' ? 'pacientes' : 'clínicas'} hoy.
                         </p>
                     </div>
                     <GlobalCreateButton />
@@ -76,21 +76,21 @@ export default function DashboardPage() {
                     <div className="grid grid-cols-4 gap-4">
                         <StatCard
                             icon={<Users size={20} />}
-                            label="Atletas"
+                            label="Pacientes"
                             value={stats.athletes}
                             trend="Total registrados"
                             color="text-blue-400"
                         />
                         <StatCard
                             icon={<Building2 size={20} />}
-                            label="Gimnasios"
+                            label="Clínicas"
                             value={stats.gyms}
                             trend="Total registrados"
                             color="text-purple-400"
                         />
                         <StatCard
                             icon={<Dumbbell size={20} />}
-                            label="Planes Activos"
+                            label="Planes Nutricionales"
                             value={stats.activePlans}
                             trend="En curso"
                             color="text-cv-accent"
@@ -112,7 +112,7 @@ export default function DashboardPage() {
                         {/* Recent Programs */}
                         <div className="cv-card">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="font-semibold text-cv-text-primary">Tus Programas</h2>
+                                <h2 className="font-semibold text-cv-text-primary">Tus Planes</h2>
                                 <Link href="/programs" className="text-sm text-cv-accent hover:underline flex items-center gap-1">
                                     Ver todos <ArrowRight size={14} />
                                 </Link>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
                                 {/* "Crear Programa" removed - use Global + button */}
                                 <Link href="/athletes/new" className="cv-btn-secondary w-full justify-start">
                                     <Users size={16} />
-                                    Añadir Atleta
+                                    Añadir Paciente
                                 </Link>
                             </div>
                         </div>
