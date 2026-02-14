@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
     // 1. Define Paths & Check Public
     // We check this FIRST to avoid expensive Supabase initialization on static assets/API
     const path = request.nextUrl.pathname;
-    const isPublic = path.startsWith('/api') || path.includes('.'); // Asset/API exclusions
+    const isPublic = path.startsWith('/api') || path.includes('.') || path.startsWith('/debug'); // Asset/API/Debug exclusions
     const isServerAction = request.headers.get('Next-Action') !== null; // Next.js server action requests
 
     if (isPublic || isServerAction) {
