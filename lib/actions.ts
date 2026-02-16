@@ -128,28 +128,74 @@ export async function getDashboardStats() {
 // NUTRITIONAL PLANS ACTIONS
 // ==========================================
 
+
 export async function getNutritionalPlans() {
     noStore();
-    let supabase = createServerClient();
+    const supabase = createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) return [];
 
-    // Use Service Role if available to bypass RLS issues during dev
-    // But ideally should rely on RLS
+    // Use Service Role to bypass RLS
+    const adminSupabase = process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+        )
+        : supabase;
 
-    const { data, error } = await supabase
-        .from('nutritional_plans')
-        .select(`*, client:clients(*), coach:profiles!user_id(full_name)`)
-        // Note: Relation might be tricky depending on how we set up foreign keys.
-        // For now, let's just get the plans.
-        .order('updated_at', { ascending: false });
+    try {
+        // 1. Check User Role
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
 
-    if (error) {
-        console.error('Error fetching plans:', error);
+        // 2. Athlete Logic
+        if (profile?.role === 'athlete') {
+            // Find client record linked to this user
+            const { data: client } = await adminSupabase
+                .from('clients')
+                .select('id')
+                .eq('user_id', user.id)
+                .single();
+
+            if (!client) return [];
+
+
+            // Fetch plans assigned to this client
+            const { data, error } = await adminSupabase
+                .from('nutritional_plans')
+                .select(`*, client:clients(*)`)
+                .eq('client_id', client.id)
+                .eq('is_active', true)
+                .order('updated_at', { ascending: false });
+
+            if (error) {
+                console.error('Error fetching athlete plans:', error);
+                return [];
+            }
+            return data || [];
+        }
+
+        // 3. Admin/Coach Logic (Show All)
+        // TODO: Filter by coach_id if needed, but for now Admin/Coach sees all
+        const { data, error } = await adminSupabase
+            .from('nutritional_plans')
+            .select(`*, client:clients(*), coach:profiles!user_id(full_name)`)
+            .order('updated_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching plans:', error);
+            return [];
+        }
+        return data || [];
+
+    } catch (err) {
+        console.error('Unexpected error in getNutritionalPlans:', err);
         return [];
     }
-    return data;
 }
 
 export async function getNutritionalPlan(id: string) {

@@ -117,9 +117,8 @@ export async function middleware(request: NextRequest) {
                 if (parts.length >= 2) {
                     const [cookieUserId, cookieRole, cookieStatus] = parts;
                     // Verify the cookie belongs to the current user
-                    if (cookieUserId === user.id) {
+                    if (cookieUserId === user.id && ['coach', 'athlete', 'admin', 'gym', 'patient', 'nutritionist'].includes(cookieRole)) {
                         role = cookieRole;
-                        // Backward compatibility: If no status in cookie, fetch from DB
                         if (cookieStatus === 'true') {
                             onboardingCompleted = true;
                         } else if (cookieStatus === 'false') {
@@ -188,7 +187,7 @@ export async function middleware(request: NextRequest) {
 
             // SCENARIO B: Has Completed Onboarding -> Prevent accessing Onboarding
             if (onboardingCompleted && isOnboardingPage) {
-                return NextResponse.redirect(new URL(role === 'athlete' ? '/athlete/dashboard' : '/', request.url));
+                return NextResponse.redirect(new URL('/', request.url));
             }
 
             // SCENARIO C: Admin (Superuser)
@@ -197,21 +196,19 @@ export async function middleware(request: NextRequest) {
                 return response;
             }
 
-            // SCENARIO D: Coach Checks
-            if (role === 'coach') {
-                // Block access to Client/Gym Management (Admin territory)
-                if (path.startsWith('/gyms') || path.startsWith('/admin')) {
-                    // Redirect to safe dashboard
+            // SCENARIO D: Coach / Nutritionist Checks
+            if (role === 'coach' || role === 'nutritionist') {
+                // Block access to Admin territory
+                if (path.startsWith('/admin')) {
                     return NextResponse.redirect(new URL('/', request.url));
                 }
             }
 
-            // SCENARIO E: Athlete Checks
-            if (role === 'athlete') {
-                // Strict: Athletes go to /athlete/dashboard, Profile, etc.
-                // Block Coach/Admin routes
-                if (path === '/' || path.startsWith('/programs') || path.startsWith('/athletes') || path.startsWith('/gyms')) {
-                    return NextResponse.redirect(new URL('/athlete/dashboard', request.url));
+            // SCENARIO E: Athlete / Patient Checks
+            if (role === 'athlete' || role === 'patient') {
+                // Patients/Athletes: block admin/management routes
+                if (path.startsWith('/admin') || path.startsWith('/athletes') || path.startsWith('/gyms')) {
+                    return NextResponse.redirect(new URL('/', request.url));
                 }
             }
         }

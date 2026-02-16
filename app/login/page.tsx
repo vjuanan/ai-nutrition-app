@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Dumbbell, AlertCircle } from 'lucide-react';
+import { Loader2, Apple, AlertCircle } from 'lucide-react';
 import { login } from '@/app/auth/actions';
 
 export default function LoginPage() {
@@ -47,14 +47,14 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-cv-bg-primary p-4">
             <div className="w-full max-w-md space-y-8">
                 <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 bg-cv-accent rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-cv-accent/20">
-                        <Dumbbell className="text-white" size={32} />
+                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
+                        <Apple className="text-white" size={32} />
                     </div>
                     <h2 className="text-3xl font-bold text-cv-text-primary text-center">
-                        AI Coach
+                        AI Nutrition
                     </h2>
                     <p className="text-cv-text-tertiary mt-2 text-center">
-                        Plataforma de Programación Inteligente
+                        Plataforma de Nutrición Inteligente
                     </p>
                 </div>
 
@@ -131,7 +131,7 @@ export default function LoginPage() {
                 </div>
 
                 <p className="text-center text-sm text-cv-text-tertiary">
-                    Acceso restringido a entrenadores autorizados.
+                    Plataforma para nutricionistas y pacientes.
                 </p>
             </div>
         </div>

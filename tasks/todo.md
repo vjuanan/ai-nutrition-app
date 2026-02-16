@@ -6,5 +6,8 @@
 - [x] Fix admin role in profile
 - [x] Verify admin login via browser
 - [x] Find correct production URL
-- [ ] Verify admin login on PROD (ainutrition.epnstore.com.ar)
-- [ ] Configure/Enable Nutrition Mode
+- [x] Verify admin login on PROD (ainutrition.epnstore.com.ar)
+- [ ] Create Nutrition Plan Template (Mike Israetel / High Protein)
+- [ ] Create New Patient (Signup Flow with all data)
+- [ ] Assign Template to Patient as Program
+- [ ] Verify Patient can see the Plan
