@@ -183,7 +183,7 @@ export async function getNutritionalPlans() {
         // TODO: Filter by coach_id if needed, but for now Admin/Coach sees all
         const { data, error } = await adminSupabase
             .from('nutritional_plans')
-            .select(`*, client:clients(*), coach:profiles!user_id(full_name)`)
+            .select(`*, client:clients(*)`)
             .order('updated_at', { ascending: false });
 
         if (error) {
