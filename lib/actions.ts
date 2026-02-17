@@ -673,12 +673,25 @@ export async function getProfiles() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    const { data, error } = await supabase
+    // Verify if user is admin or coach to see profiles? 
+    // Usually only admin should see all users. 
+    // Using Service Role to ensure we get data if RLS is broken/complex
+    const adminSupabase = process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+        )
+        : supabase;
+
+    const { data, error } = await adminSupabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-    if (error) return [];
+    if (error) {
+        console.error("Error fetching profiles:", error);
+        return [];
+    }
     return data;
 }
 

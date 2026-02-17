@@ -30,7 +30,6 @@ const navItems: NavItem[] = [
     { label: 'Clínicas', href: '/gyms', icon: <Building2 size={20} /> },
     { label: 'Alimentos', href: '/foods', icon: <Dumbbell size={20} /> }, // Was Exercises
     { label: 'Planes', href: '/meal-plans', icon: <FileText size={20} /> }, // Was Programs
-    { label: 'Recetas', href: '/templates', icon: <FileText size={20} /> }, // Was Templates
     { label: 'Conocimiento', href: '/knowledge', icon: <BookOpen size={20} /> },
     { label: 'Usuarios', href: '/admin/users', icon: <Shield size={20} /> },
 ];
