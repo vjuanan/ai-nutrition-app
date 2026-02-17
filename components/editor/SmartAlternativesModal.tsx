@@ -24,35 +24,35 @@ export function SmartAlternativesModal({ isOpen, onClose, foodName, onSelect }: 
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        const fetchAlternatives = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const response = await fetch('/api/ai/alternatives', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ foodName }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch alternatives');
+                }
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                setAlternatives(data);
+            } catch (err) {
+                console.error(err);
+                setError('Could not generate alternatives. Please ensure the API Key is configured.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
         if (isOpen && foodName) {
             fetchAlternatives();
         }
     }, [isOpen, foodName]);
-
-    const fetchAlternatives = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const response = await fetch('/api/ai/alternatives', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ foodName }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch alternatives');
-            }
-
-            const data = await response.json();
-            if (data.error) throw new Error(data.error);
-            setAlternatives(data);
-        } catch (err) {
-            console.error(err);
-            setError('Could not generate alternatives. Please ensure the API Key is configured.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     if (!isOpen) return null;
 
@@ -69,7 +69,7 @@ export function SmartAlternativesModal({ isOpen, onClose, foodName, onSelect }: 
 
                 <div className="p-6">
                     <p className="text-cv-text-secondary mb-4">
-                        Finding alternatives for <span className="font-bold text-cv-text-primary">"{foodName}"</span>
+                        Finding alternatives for <span className="font-bold text-cv-text-primary">&quot;{foodName}&quot;</span>
                     </p>
 
                     {isLoading ? (
