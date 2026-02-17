@@ -6,15 +6,10 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
     User,
-    Palette,
-    Bell,
-    Database,
     Camera,
     LogOut,
     Save,
-    Check,
     Loader2,
-    Dumbbell
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ProfileDetailsEditor } from '@/components/athletes/ProfileDetailsEditor';
@@ -25,8 +20,6 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ user, initialProfile }: SettingsFormProps) {
-    const [darkMode, setDarkMode] = useState(true);
-    const [notifications, setNotifications] = useState(true);
     const [saving, setSaving] = useState(false);
     const [profile, setProfile] = useState<any>(initialProfile || {});
 
@@ -258,73 +251,8 @@ export function SettingsForm({ user, initialProfile }: SettingsFormProps) {
                     </div>
                 </div>
 
-                {/* Right Column - Other Settings */}
+                {/* Right Column - Session */}
                 <div className="space-y-4">
-                    {/* Appearance */}
-                    <div className="cv-card">
-                        <h2 className="font-semibold text-cv-text-primary mb-3 flex items-center gap-2">
-                            <Palette size={18} />
-                            Apariencia
-                        </h2>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="font-medium text-cv-text-primary text-sm">Modo Oscuro</p>
-                                <p className="text-xs text-cv-text-tertiary">Usar tema oscuro</p>
-                            </div>
-                            <button
-                                onClick={() => setDarkMode(!darkMode)}
-                                className={`w-11 h-6 rounded-full transition-colors relative ${darkMode ? 'bg-cv-accent' : 'bg-cv-bg-tertiary'}`}
-                            >
-                                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${darkMode ? 'left-6' : 'left-1'}`} />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Notifications */}
-                    <div className="cv-card">
-                        <h2 className="font-semibold text-cv-text-primary mb-3 flex items-center gap-2">
-                            <Bell size={18} />
-                            Notificaciones
-                        </h2>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="font-medium text-cv-text-primary text-sm">Notificaciones por Correo</p>
-                                <p className="text-xs text-cv-text-tertiary">Recibir actualizaciones por correo</p>
-                            </div>
-                            <button
-                                onClick={() => setNotifications(!notifications)}
-                                className={`w-11 h-6 rounded-full transition-colors relative ${notifications ? 'bg-cv-accent' : 'bg-cv-bg-tertiary'}`}
-                            >
-                                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${notifications ? 'left-6' : 'left-1'}`} />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Database */}
-                    <div className="cv-card">
-                        <h2 className="font-semibold text-cv-text-primary mb-3 flex items-center gap-2">
-                            <Database size={18} />
-                            Datos
-                        </h2>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between p-2 bg-cv-bg-tertiary rounded-lg">
-                                <span className="text-cv-text-primary text-sm">Conexión Supabase</span>
-                                <span className="cv-badge-success flex items-center gap-1 text-xs">
-                                    <Check size={10} />
-                                    Conectado
-                                </span>
-                            </div>
-                            {profile.role && (
-                                <div className="flex items-center justify-between p-2 bg-cv-bg-tertiary rounded-lg">
-                                    <span className="text-cv-text-primary text-sm">Rol de Usuario</span>
-                                    <span className="text-xs font-mono px-2 py-0.5 bg-cv-bg-secondary rounded border border-cv-border capitalize">
-                                        {profile.role}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
                     {/* Logout Button */}
                     <div className="cv-card border-red-500/20">
                         <h2 className="font-semibold text-cv-text-primary mb-3 flex items-center gap-2">

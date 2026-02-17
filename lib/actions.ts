@@ -200,11 +200,23 @@ export async function getNutritionalPlans() {
 
 export async function getNutritionalPlan(id: string) {
     const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return null;
+
+    // Use admin client to bypass RLS for nested queries (plan_days, meals, meal_items)
+    // RLS policies are not yet configured for these tables
+    const adminSupabase = process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+        )
+        : supabase;
 
     // Fetch Plan with nested days and meals and items
     // Nested query: plan -> days -> meals -> meal_items -> food
 
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
         .from('nutritional_plans')
         .select(`
             *,
@@ -227,6 +239,12 @@ export async function getNutritionalPlan(id: string) {
         return null;
     }
 
+    // Verify ownership for security (manual check since we bypassed RLS)
+    if (data && data.user_id !== user.id) {
+        console.warn('User attempted to access plan they do not own');
+        return null;
+    }
+
     // Sort logic (Supabase doesn't always sort nested arrays deeply)
     if (data && data.days) {
         data.days.sort((a: any, b: any) => a.order - b.order);
@@ -239,6 +257,7 @@ export async function getNutritionalPlan(id: string) {
 
     return data;
 }
+
 
 export async function createNutritionalPlan(
     name: string,
