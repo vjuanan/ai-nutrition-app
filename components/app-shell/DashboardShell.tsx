@@ -27,10 +27,8 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
             <CommandPalette />
 
             <main
-                className={`
-                    pt-12 min-h-screen transition-all duration-300
-                    ${isSidebarCollapsed ? 'pl-16' : 'pl-64'}
-                `}
+                className="pt-12 min-h-screen transition-all duration-300"
+                style={{ paddingLeft: isSidebarCollapsed ? '6rem' : '22rem' }}
             >
                 {/* Warning Banner */}
                 {status && (

@@ -1,17 +1,16 @@
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Topbar } from '@/components/app-shell/Topbar';
 
 
 export default function KnowledgePage() {
     return (
         <>
-            <Topbar title="Conocimiento" />
+            <Topbar />
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <p className="text-cv-text-secondary mt-1">
-                        Base de conocimiento para la creación de planes nutricionales basados en evidencia científica.
-                    </p>
-                </div>
+                <PageHeader
+                    title="Conocimiento"
+                    description="Base de conocimiento para la creación de planes nutricionales basados en evidencia científica."
+                />
 
                 <div className="bg-cv-bg-secondary rounded-xl p-12 text-center border border-cv-border">
                     <div className="w-16 h-16 bg-cv-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">

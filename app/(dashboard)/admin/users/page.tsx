@@ -1,6 +1,7 @@
 // Force rebuild: solo MAS final - 2026-02-02-1125
 'use client';
 
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Topbar } from '@/components/app-shell/Topbar';
 import { getProfiles, updateUserRole, resetUserPassword, createUser, deleteUser } from '@/lib/actions';
 
@@ -203,35 +204,37 @@ export default function AdminUsersPage() {
     return (
 
         <>
-            <Topbar
-                title="Administración de Usuarios"
-                actions={
-                    <>
-                        {selectedUsers.size > 0 && (
-                            <button
-                                onClick={handleBulkDelete}
-                                disabled={isBulkDeleting}
-                                className="bg-red-500/10 text-red-500 hover:bg-red-500/20 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-                            >
-                                {isBulkDeleting ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
-                                Eliminar ({selectedUsers.size})
-                            </button>
-                        )}
-                        <div className="bg-slate-100 px-3 py-1.5 rounded-md flex items-center gap-2">
-                            <Users className="text-cv-text-secondary" size={16} />
-                            <span className="font-mono font-bold text-cv-text-primary text-sm">{filteredProfiles.length}</span>
-                        </div>
-                        <button
-                            onClick={() => setIsCreateOpen(true)}
-                            className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 active:scale-95 transition-all duration-200"
-                            title="Crear Usuario"
-                        >
-                            <Plus size={20} />
-                        </button>
-                    </>
-                }
-            />
+            <Topbar />
             <div className="max-w-7xl mx-auto space-y-4">
+                <PageHeader
+                    title="Administración de Usuarios"
+                    description="Gestiona los usuarios, roles y permisos de la plataforma"
+                    actions={
+                        <>
+                            {selectedUsers.size > 0 && (
+                                <button
+                                    onClick={handleBulkDelete}
+                                    disabled={isBulkDeleting}
+                                    className="bg-red-500/10 text-red-500 hover:bg-red-500/20 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                                >
+                                    {isBulkDeleting ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
+                                    Eliminar ({selectedUsers.size})
+                                </button>
+                            )}
+                            <div className="bg-slate-100 px-3 py-1.5 rounded-md flex items-center gap-2">
+                                <Users className="text-cv-text-secondary" size={16} />
+                                <span className="font-mono font-bold text-cv-text-primary text-sm">{filteredProfiles.length}</span>
+                            </div>
+                            <button
+                                onClick={() => setIsCreateOpen(true)}
+                                className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 active:scale-95 transition-all duration-200"
+                                title="Crear Usuario"
+                            >
+                                <Plus size={20} />
+                            </button>
+                        </>
+                    }
+                />
 
                 {message && (
                     <div className={`p-3 rounded-lg flex items-center gap-2 text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
