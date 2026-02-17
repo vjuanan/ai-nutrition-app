@@ -76,7 +76,7 @@ export function Sidebar({ role = 'coach' }: SidebarProps) {
                 <Link href="/" className="flex items-center">
                     {/* Logo - Increased size to h-10 w-10 */}
                     <Image
-                        src="/images/ai-coach-logo-v3.png"
+                        src="/images/ai-nutrition-logo.png"
                         alt="Logo"
                         width={40}
                         height={40}
