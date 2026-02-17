@@ -199,6 +199,12 @@ export async function middleware(request: NextRequest) {
             // SCENARIO D: Coach / Nutritionist Checks
             if (role === 'coach' || role === 'nutritionist') {
                 // Block access to Admin territory
+                // EXCEPTION: Allow access to /admin/users for now as per user request to fix "Usuarios" page
+                // or if it's the specific super admin email
+                if (user.email === 'vjuanan@gmail.com') {
+                    return response;
+                }
+
                 if (path.startsWith('/admin')) {
                     return NextResponse.redirect(new URL('/', request.url));
                 }
