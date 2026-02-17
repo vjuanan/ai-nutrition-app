@@ -251,6 +251,11 @@ export async function getNutritionalPlan(id: string) {
         data.days.forEach((day: any) => {
             if (day.meals) {
                 day.meals.sort((a: any, b: any) => a.order - b.order);
+                day.meals.forEach((meal: any) => {
+                    if (meal.items) {
+                        meal.items.sort((a: any, b: any) => a.order - b.order);
+                    }
+                });
             }
         });
     }
@@ -442,9 +447,8 @@ export async function savePlanChanges(planId: string, days: any[]) {
                     if (meal.items && meal.items.length > 0) {
                         const itemsToInsert = meal.items.map((item: any, idx: number) => ({
                             meal_id: insertedMeal.id,
-                            food_id: item.food_id,
+                            food_id: item.food_id || item.food?.id,
                             quantity: item.quantity,
-                            unit: item.unit,
                             order: idx
                         }));
 

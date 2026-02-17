@@ -1,10 +1,12 @@
 'use client';
 
 import { useDietStore, DraftMeal } from '@/lib/store';
-import { GripVertical, Copy, Trash2, Clock, Check } from 'lucide-react';
+import { GripVertical, Copy, Trash2, Clock, Check, Sparkles } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { toast } from 'sonner';
+import { useState } from 'react';
+import { SmartAlternativesModal } from './SmartAlternativesModal';
 
 interface MealCardProps {
     meal: DraftMeal;
@@ -12,6 +14,8 @@ interface MealCardProps {
 
 export function MealCard({ meal }: MealCardProps) {
     const { selectMeal, selectedMealId, deleteMeal, duplicateMeal, enterMealBuilder } = useDietStore();
+    const [showAlternatives, setShowAlternatives] = useState(false);
+    const [foodToReplace, setFoodToReplace] = useState('');
 
     // Setup sortable
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -124,7 +128,34 @@ export function MealCard({ meal }: MealCardProps) {
                 >
                     <Trash2 size={12} />
                 </button>
+                {/* Smart Alternatives */}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (meal.items.length > 0) {
+                            setFoodToReplace(meal.items[0].food?.name || '');
+                            setShowAlternatives(true);
+                        } else {
+                            toast.error('Add items to get suggestions');
+                        }
+                    }}
+                    className="p-1.5 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 text-slate-400 hover:text-purple-500 transition-colors"
+                    title="AI Alternatives"
+                >
+                    <Sparkles size={12} />
+                </button>
             </div>
+
+            <SmartAlternativesModal
+                isOpen={showAlternatives}
+                onClose={() => setShowAlternatives(false)}
+                foodName={foodToReplace}
+                onSelect={(altName) => {
+                    toast.success(`Suggestion: ${altName}`);
+                    // Ideally we would replace or add here, for now just toast
+                }}
+            />
         </div>
     );
 }
+

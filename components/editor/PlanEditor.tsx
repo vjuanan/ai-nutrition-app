@@ -19,10 +19,10 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MealCard } from './MealCard';
-import { ArrowLeft, Save, Loader2, CheckCircle2, Download } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { savePlanChanges } from '@/lib/actions'; // We will use this or store action
+import { savePlanChanges } from '@/lib/actions';
 
 interface PlanEditorProps {
     planId: string;
@@ -101,21 +101,15 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
         setIsSaving(true);
         try {
             // Call server action to save all changes
-            // Construct the payload based on store state 'days'
-            // We need to map DraftDay to the structure expected by savePlanChanges which expects PlanDay[]
-            // But DraftDay matches mostly.
-            // Wait, savePlanChanges logic needs to be verified.
-            // For now, assume we just pass planId and the days structure.
-            // Actually, we should probably implement a store action 'savePlan' that calls the server action.
-            // Or just call it here.
+            console.log("PAYLOAD TO SAVE:", JSON.stringify(days, null, 2));
 
-            // Simulating save for now to test UI flow
-            const success = await savePlanChanges(planId, days as any); // Cast for now
-            if (success) {
+            const result = await savePlanChanges(planId, days as any);
+            if (result.success) {
                 toast.success('Plan guardado correctamente');
                 markAsClean();
             } else {
-                toast.error('Error al guardar el plan');
+                console.error('Save error:', result.error);
+                toast.error(`Error al guardar: ${result.error}`);
             }
         } catch (error) {
             console.error(error);
