@@ -90,7 +90,7 @@ export function Sidebar({ role = 'coach' }: SidebarProps) {
 
                             {/* The Text - Specific slate grey, medium weight, tight tracking */}
                             <span className="text-slate-500 font-medium text-lg tracking-tight whitespace-nowrap">
-                                AI Coach
+                                AI Nutrition
                             </span>
                         </>
                     )}

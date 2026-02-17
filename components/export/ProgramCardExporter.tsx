@@ -227,7 +227,7 @@ export function ProgramCardExporter({ isOpen, onClose, programs }: ProgramCardEx
                                             color: EXPORT_COLORS.textMuted,
                                             margin: 0,
                                         }}>
-                                            AI Coach
+                                            AI Nutrition
                                         </p>
                                     </div>
                                 </div>
@@ -338,7 +338,7 @@ export function ProgramCardExporter({ isOpen, onClose, programs }: ProgramCardEx
                                         letterSpacing: '0.1em',
                                         margin: 0,
                                     }}>
-                                        Exportado desde AI Coach
+                                        Exportado desde AI Nutrition
                                     </p>
                                     <p style={{
                                         fontSize: '11px',

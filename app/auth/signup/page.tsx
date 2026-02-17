@@ -119,7 +119,7 @@ export default function SignUpPage() {
                         Crear Cuenta
                     </h2>
                     <p className="text-cv-text-tertiary mt-2 text-center">
-                        Únete a AI Coach y potencia tus entrenamientos
+                        Únete a AI Nutrition y potencia tus entrenamientos
                     </p>
                 </div>
 

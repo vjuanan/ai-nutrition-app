@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'sw
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono', display: 'swap' });
 
 export const metadata: Metadata = {
-    title: 'AI Coach',
+    title: 'AI Nutrition',
     description: 'Professional CrossFit programming and mesocycle design platform',
 };
 

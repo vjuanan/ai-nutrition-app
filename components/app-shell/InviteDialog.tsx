@@ -41,9 +41,9 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
     };
 
     const handleSendEmail = () => {
-        const subject = encodeURIComponent('¡Te invito a unirte a AI Coach!');
+        const subject = encodeURIComponent('¡Te invito a unirte a AI Nutrition!');
         const body = encodeURIComponent(
-            `¡Hola!\n\nTe invito a unirte a AI Coach, la plataforma de entrenamiento inteligente.\n\nRegístrate aquí: ${signupUrl}\n\n¡Nos vemos pronto!`
+            `¡Hola!\n\nTe invito a unirte a AI Nutrition, la plataforma de entrenamiento inteligente.\n\nRegístrate aquí: ${signupUrl}\n\n¡Nos vemos pronto!`
         );
         window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
     };
@@ -72,7 +72,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                         </div>
                         <div>
                             <h3 className="text-xl font-semibold text-white">Invitar Usuarios</h3>
-                            <p className="text-sm text-gray-400">Comparte AI Coach con otros</p>
+                            <p className="text-sm text-gray-400">Comparte AI Nutrition con otros</p>
                         </div>
                     </div>
                     <button
@@ -112,8 +112,8 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                     >
                         <div className="flex items-center gap-4">
                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${copied
-                                    ? 'bg-green-500/20'
-                                    : 'bg-gradient-to-br from-purple-500/20 to-purple-600/20 group-hover:from-purple-500/30 group-hover:to-purple-600/30'
+                                ? 'bg-green-500/20'
+                                : 'bg-gradient-to-br from-purple-500/20 to-purple-600/20 group-hover:from-purple-500/30 group-hover:to-purple-600/30'
                                 }`}>
                                 {copied ? (
                                     <Check className="text-green-400" size={24} />
