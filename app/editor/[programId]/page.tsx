@@ -20,7 +20,7 @@ export default function EditorPage() {
 
     useEffect(() => {
         // Prevent reloading if we already have the data for this plan
-        if (storePlanId === planId && days.length > 0) {
+        if (storePlanId === planId) {
             setIsLoading(false);
             return;
         }

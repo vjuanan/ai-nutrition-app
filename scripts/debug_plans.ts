@@ -27,7 +27,7 @@ async function checkPlans() {
 
     console.log(`Simple Count: ${simplePlans?.length}`);
     if (simpleError) console.error('Simple Error:', simpleError);
-    if (simplePlans?.length > 0) {
+    if (simplePlans && simplePlans.length > 0) {
         console.log('Sample Plan:', simplePlans[0]);
     }
 
