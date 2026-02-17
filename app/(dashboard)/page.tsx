@@ -1,206 +1,130 @@
 'use client';
 
-import { Topbar } from '@/components/app-shell/Topbar';
-import { GlobalCreateButton } from '@/components/app-shell/GlobalCreateButton';
 import { useAppStore } from '@/lib/store';
-import { getPrograms, createProgram, getDashboardStats } from '@/lib/actions';
+import { getDashboardStats } from '@/lib/actions'; // Keep for getting the name
 import {
-    TrendingUp,
     Users,
-    Building2,
-    Dumbbell,
-    Calendar,
-    ArrowRight,
-    Clock,
-    Plus,
-    Loader2
+    Utensils,
+    ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { NutritionalPlanWizard } from '@/components/app-shell/NutritionalPlanWizard';
+import { motion } from 'framer-motion';
 
 export default function DashboardPage() {
     const { currentView } = useAppStore();
-    const [programs, setPrograms] = useState<any[]>([]);
     const [stats, setStats] = useState({
-        showStats: true,
-        athletes: 0,
-        gyms: 0,
-        activePlans: 0,
-        totalMeals: 0,
-        totalFoods: 0,
         userName: 'Coach'
     });
-    const [isLoading, setIsLoading] = useState(true);
-    const router = useRouter();
+    const [isNutritionalWizardOpen, setIsNutritionalWizardOpen] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const [programsData, statsData] = await Promise.all([
-                    getPrograms(),
-                    getDashboardStats()
-                ]);
-                setPrograms(programsData || []);
-                setStats(statsData);
+                // We only really need the user name for now, but keeping the call compatible
+                const statsData = await getDashboardStats();
+                setStats(curr => ({ ...curr, userName: statsData.userName || 'Coach' }));
             } catch (err) {
                 console.error(err);
-            } finally {
-                setIsLoading(false);
             }
         }
         fetchData();
     }, []);
 
-    // Logic removed - moved to GlobalCreateButton
+    // Animation variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1,
+                delayChildren: 0.2
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: {
+            y: 0,
+            opacity: 1,
+            transition: { type: 'spring', stiffness: 50 }
+        }
+    };
 
     return (
-        <>
-            <Topbar title="Dashboard" />
-            <div className="max-w-7xl mx-auto space-y-8">
-                {/* Welcome Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-cv-text-primary">
-                            Bienvenido, {stats.userName}
-                        </h1>
-                        <p className="text-cv-text-secondary mt-1">
-                            Resumen de actividad de tus {currentView === 'athletes' ? 'pacientes' : 'clínicas'} hoy.
-                        </p>
-                    </div>
-                    <GlobalCreateButton />
-                </div>
+        <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+            {/* Background Atmosphere */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-primary/5 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-brand-secondary/5 rounded-full blur-3xl" />
+            </div>
 
-                {/* Stats Grid - REAL DATA (hidden for athletes) */}
-                {stats.showStats && (
-                    <div className="grid grid-cols-4 gap-4">
-                        <StatCard
-                            icon={<Users size={20} />}
-                            label="Pacientes"
-                            value={stats.athletes}
-                            trend="Total registrados"
-                            color="text-blue-400"
-                        />
-                        <StatCard
-                            icon={<Building2 size={20} />}
-                            label="Clínicas"
-                            value={stats.gyms}
-                            trend="Total registrados"
-                            color="text-purple-400"
-                        />
-                        <StatCard
-                            icon={<Dumbbell size={20} />}
-                            label="Planes Nutricionales"
-                            value={stats.activePlans}
-                            trend="En curso"
-                            color="text-cv-accent"
-                        />
-                        <StatCard
-                            icon={<Calendar size={20} />}
-                            label="Comidas Totales"
-                            value={stats.totalMeals}
-                            trend="Planificadas"
-                            color="text-green-400"
-                        />
-                    </div>
-                )}
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="z-10 w-full max-w-4xl text-center space-y-12"
+            >
+                {/* Hero Section */}
+                <motion.div variants={itemVariants} className="space-y-4">
+                    <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-cv-text-primary">
+                        Bienvenido, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">{stats.userName}</span>
+                    </h1>
+                    <p className="text-xl text-cv-text-secondary font-light">
+                        ¿Qué deseas hacer hoy?
+                    </p>
+                </motion.div>
 
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-3 gap-6">
-                    {/* Quick Access */}
-                    <div className="col-span-2 space-y-6">
-                        {/* Recent Programs */}
-                        <div className="cv-card">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="font-semibold text-cv-text-primary">Tus Planes</h2>
-                                <Link href="/programs" className="text-sm text-cv-accent hover:underline flex items-center gap-1">
-                                    Ver todos <ArrowRight size={14} />
-                                </Link>
+                {/* Action Cards */}
+                <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                    {/* View Patients Card */}
+                    <Link href="/athletes" className="group">
+                        <div className="h-full p-8 rounded-2xl bg-cv-bg-secondary/50 backdrop-blur-xl border border-cv-border hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-1 flex flex-col items-center text-center gap-4">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400/10 to-emerald-600/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                <Users size={32} className="text-emerald-500" />
                             </div>
-
-                            {isLoading ? (
-                                <div className="space-y-3">
-                                    {[1, 2, 3].map(i => (
-                                        <div key={i} className="h-16 bg-cv-bg-tertiary rounded-lg animate-pulse" />
-                                    ))}
-                                </div>
-                            ) : programs.length === 0 ? (
-                                <div className="text-center py-8 text-cv-text-tertiary">
-                                    Aún no hay programas. ¡Crea el primero!
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {programs.map((program) => (
-                                        <Link
-                                            key={program.id}
-                                            href={`/editor/${program.id}`}
-                                            className="flex items-center justify-between p-3 rounded-lg bg-cv-bg-tertiary hover:bg-cv-bg-elevated transition-colors group"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-cv-accent-muted flex items-center justify-center">
-                                                    <Dumbbell size={18} className="text-cv-accent" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-cv-text-primary">{program.name}</p>
-                                                    <p className="text-sm text-cv-text-tertiary">
-                                                        {program.client ? program.client.name : 'Sin asignar'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-sm text-cv-text-secondary">
-                                                    Act. {new Date(program.updated_at).toLocaleDateString('es-ES')}
-                                                </span>
-                                                <span className={`cv-badge ${program.status === 'active' ? 'cv-badge-success' : 'cv-badge-warning'}`}>
-                                                    {program.status}
-                                                </span>
-                                                <ArrowRight size={16} className="text-cv-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Sidebar */}
-                    <div className="space-y-6">
-                        {/* Quick Actions */}
-                        <div className="cv-card">
-                            <h2 className="font-semibold text-cv-text-primary mb-4">Acciones Rápidas</h2>
                             <div className="space-y-2">
-                                {/* "Crear Programa" removed - use Global + button */}
-                                <Link href="/athletes/new" className="cv-btn-secondary w-full justify-start">
-                                    <Users size={16} />
-                                    Añadir Paciente
-                                </Link>
+                                <h3 className="text-2xl font-semibold text-cv-text-primary">Ver Pacientes</h3>
+                                <p className="text-cv-text-tertiary">Gestiona tus atletas y sus progresos</p>
+                            </div>
+                            <div className="mt-auto pt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                <span className="flex items-center gap-2 text-emerald-500 font-medium">
+                                    Ir a pacientes <ArrowRight size={16} />
+                                </span>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
-}
+                    </Link>
 
-interface StatCardProps {
-    icon: React.ReactNode;
-    label: string;
-    value: number;
-    trend: string;
-    color: string;
-}
+                    {/* Create Nutrition Program Card */}
+                    <button
+                        onClick={() => setIsNutritionalWizardOpen(true)}
+                        className="w-full text-left group"
+                    >
+                        <div className="h-full p-8 rounded-2xl bg-cv-bg-secondary/50 backdrop-blur-xl border border-cv-border hover:border-cyan-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 flex flex-col items-center text-center gap-4">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400/10 to-cyan-600/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                <Utensils size={32} className="text-cyan-500" />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-semibold text-cv-text-primary">Crear Programa</h3>
+                                <p className="text-cv-text-tertiary">Diseña un nuevo plan nutricional</p>
+                            </div>
+                            <div className="mt-auto pt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                <span className="flex items-center gap-2 text-cyan-500 font-medium">
+                                    Comenzar ahora <ArrowRight size={16} />
+                                </span>
+                            </div>
+                        </div>
+                    </button>
+                </motion.div>
+            </motion.div>
 
-function StatCard({ icon, label, value, trend, color }: StatCardProps) {
-    return (
-        <div className="cv-card">
-            <div className="flex items-center justify-between mb-3">
-                <span className={color}>{icon}</span>
-                <TrendingUp size={14} className="text-green-400" />
-            </div>
-            <p className="text-2xl font-bold text-cv-text-primary font-mono">{value}</p>
-            <p className="text-sm text-cv-text-secondary">{label}</p>
-            <p className="text-xs text-cv-text-tertiary mt-1">{trend}</p>
+            {/* Wizards */}
+            <NutritionalPlanWizard
+                isOpen={isNutritionalWizardOpen}
+                onClose={() => setIsNutritionalWizardOpen(false)}
+            />
         </div>
     );
 }
