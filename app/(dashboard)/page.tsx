@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { NutritionalPlanWizard } from '@/components/app-shell/NutritionalPlanWizard';
 import { motion } from 'framer-motion';
+import { Topbar } from '@/components/app-shell/Topbar';
 
 export default function DashboardPage() {
     const { currentView } = useAppStore();
@@ -55,6 +56,9 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full z-20">
+                <Topbar />
+            </div>
             {/* Background Atmosphere */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-primary/5 rounded-full blur-3xl" />
@@ -65,7 +69,7 @@ export default function DashboardPage() {
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="z-10 w-full max-w-4xl text-center space-y-12"
+                className="z-10 w-full max-w-4xl text-center space-y-12 mt-12"
             >
                 {/* Hero Section */}
                 <motion.div variants={itemVariants} className="space-y-4">
