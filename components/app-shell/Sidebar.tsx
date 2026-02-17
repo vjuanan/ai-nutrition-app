@@ -64,7 +64,7 @@ export function Sidebar({ role = 'coach' }: SidebarProps) {
             className={`
         fixed left-0 top-0 h-screen bg-slate-50
         flex flex-col transition-all duration-300 ease-in-out z-40
-        ${isSidebarCollapsed ? 'w-16' : 'w-64'}
+        ${isSidebarCollapsed ? 'w-16' : 'w-52'}
       `}
         >
             {/* Logo - Horizontal layout matching reference */}
