@@ -115,7 +115,10 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
         >
             <div className="h-full flex overflow-hidden bg-slate-50 dark:bg-black">
                 {/* Left: Palette */}
-                <BlockTypePalette onItemClick={(typeId) => addMeal(dayId, typeId)} />
+                <BlockTypePalette onItemClick={(typeId) => {
+                    console.log('PANEL: Item Clicked', typeId);
+                    addMeal(dayId, typeId);
+                }} />
 
                 {/* Right: Builder Area */}
                 <div
