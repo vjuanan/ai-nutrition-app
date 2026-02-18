@@ -63,54 +63,52 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
     return (
         <div className="flex flex-col h-screen bg-slate-50 dark:bg-black">
             {/* Navbar */}
-            <div className="h-16 bg-white dark:bg-cv-bg-secondary border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between shrink-0 z-20">
+            <div className="h-12 bg-white dark:bg-cv-bg-secondary border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between shrink-0 z-20">
                 <div className="flex items-center gap-4">
-                    <Link href="/meal-plans" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                        <ArrowLeft size={20} className="text-slate-500" />
+                    <Link href="/meal-plans" className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                        <ArrowLeft size={18} className="text-slate-500" />
                     </Link>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-base font-bold text-cv-text-primary">{planName}</h1>
-                            <span className="text-slate-300">/</span>
-                            <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                                {useDietStore.getState().planObjective || 'General'}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                            <button
-                                onClick={() => setIsAssignModalOpen(true)}
-                                className="text-xs text-slate-500 flex items-center gap-1 hover:text-slate-800 transition-colors"
-                            >
-                                <User size={12} />
-                                {planClientName || 'Sin asignar'}
-                            </button>
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-sm font-bold text-cv-text-primary">{planName}</h1>
+                        <span className="text-slate-300 text-xs">/</span>
+                        <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                            {useDietStore.getState().planObjective || 'General'}
+                        </span>
+
+                        <span className="text-slate-300 text-xs">/</span>
+                        <button
+                            onClick={() => setIsAssignModalOpen(true)}
+                            className="text-xs text-slate-500 flex items-center gap-1 hover:text-slate-800 transition-colors bg-slate-50 dark:bg-slate-800/50 px-2 py-0.5 rounded-full"
+                        >
+                            <User size={10} />
+                            {planClientName || 'Sin asignar'}
+                        </button>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     {/* Undo/Redo - Visual only for now */}
-                    <div className="flex items-center gap-1 border-r border-slate-200 dark:border-slate-700 pr-3 mr-1">
-                        <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 transition-colors" disabled>
-                            <RotateCcw size={18} />
+                    <div className="flex items-center gap-1 border-r border-slate-200 dark:border-slate-700 pr-2 mr-1">
+                        <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 transition-colors" disabled>
+                            <RotateCcw size={14} />
                         </button>
-                        <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 transition-colors" disabled>
-                            <RotateCw size={18} />
+                        <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 transition-colors" disabled>
+                            <RotateCw size={14} />
                         </button>
                     </div>
 
                     {!planClientName && (
                         <button
                             onClick={() => setIsAssignModalOpen(true)}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition-colors"
+                            className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 text-xs font-medium rounded-md transition-colors"
                         >
-                            <User size={16} />
+                            <User size={14} />
                             Asignar
                         </button>
                     )}
 
-                    <button className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition-colors">
-                        <Download size={16} />
+                    <button className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 text-xs font-medium rounded-md transition-colors">
+                        <Download size={14} />
                         Exportar
                     </button>
 
@@ -118,15 +116,15 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
                         onClick={handleSave}
                         disabled={!hasUnsavedChanges || isSaving}
                         className={`
-                            flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                            flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all
                             ${hasUnsavedChanges
-                                ? 'bg-cv-accent text-white hover:bg-cv-accent/90 shadow-md transform hover:scale-105'
+                                ? 'bg-cv-accent text-white hover:bg-cv-accent/90 shadow-sm'
                                 : 'bg-transparent text-slate-400 cursor-not-allowed'
                             }
                         `}
                     >
-                        {isSaving ? <Loader2 size={16} className="animate-spin" /> : hasUnsavedChanges ? <Save size={16} /> : <CheckCircle2 size={16} />}
-                        {isSaving ? 'Guardando...' : hasUnsavedChanges ? 'Guardar Cambios' : 'Guardado'}
+                        {isSaving ? <Loader2 size={14} className="animate-spin" /> : hasUnsavedChanges ? <Save size={14} /> : <CheckCircle2 size={14} />}
+                        {isSaving ? 'Guardando...' : hasUnsavedChanges ? 'Guardar' : 'Guardado'}
                     </button>
                 </div>
             </div>
