@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, useDroppable, pointerWithin } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { createPortal } from 'react-dom';
@@ -42,6 +42,15 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
 
     const [activeDragItemType, setActiveDragItemType] = useState<string | null>(null);
 
+    // Drop Zone Logic
+    const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+        id: 'day-drop-zone',
+        data: {
+            type: 'DayZone',
+            dayId: dayId
+        }
+    });
+
     const handleDragStart = (event: DragStartEvent) => {
         if (event.active.data.current?.type === 'NewBlock') {
             setActiveDragItemType(event.active.data.current.blockType);
@@ -65,7 +74,7 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
         }
 
         // 2. Reorder existing meals
-        if (active.id !== over.id) {
+        if (active.id !== over.id && over.id !== 'day-drop-zone') {
             const oldIndex = currentDay.meals.findIndex((m) => m.id === active.id);
             const newIndex = currentDay.meals.findIndex((m) => m.id === over.id);
 
@@ -100,7 +109,7 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
     return (
         <DndContext
             sensors={sensors}
-            collisionDetection={closestCenter}
+            collisionDetection={pointerWithin} // Use pointerWithin for better container dropping
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
@@ -112,7 +121,11 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
                 <div className="flex-1 flex flex-col h-full overflow-hidden relative">
 
                     {/* Drop Zone */}
-                    <div className="flex-1 overflow-y-auto p-6 bg-slate-100/50 dark:bg-black/50">
+                    <div
+                        ref={setDroppableRef}
+                        id="day-drop-zone"
+                        className={`flex-1 overflow-y-auto p-6 transition-colors ${isOver ? 'bg-slate-200/50 dark:bg-slate-800/50' : 'bg-slate-100/50 dark:bg-black/50'}`}
+                    >
                         <SortableContext
                             items={sortedMeals.map(m => m.id)}
                             strategy={verticalListSortingStrategy}
@@ -129,7 +142,7 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
                                 ))}
 
                                 {sortedMeals.length === 0 && (
-                                    <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl h-64 flex flex-col items-center justify-center text-gray-400">
+                                    <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl h-64 flex flex-col items-center justify-center text-gray-400 pointer-events-none">
                                         <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
                                             <Utensils size={24} className="opacity-50" />
                                         </div>
