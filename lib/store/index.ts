@@ -97,6 +97,7 @@ interface DietStoreState {
     // Builder
     enterMealBuilder: (dayId: string) => void;
     exitMealBuilder: () => void;
+    autoEnterBuilder: () => void;
 
     // Item operations (Inside a Meal)
     addItemToMeal: (mealId: string, food: Food, quantity: number, unit: string) => void;
@@ -319,6 +320,13 @@ export const useDietStore = create<DietStoreState>()(
 
             enterMealBuilder: (dayId) => set({ mealBuilderMode: true, mealBuilderDayId: dayId, selectedDayId: dayId }),
             exitMealBuilder: () => set({ mealBuilderMode: false, mealBuilderDayId: null }),
+            autoEnterBuilder: () => {
+                const { days } = get();
+                if (days.length > 0) {
+                    const firstDay = days.sort((a, b) => a.order - b.order)[0];
+                    set({ mealBuilderMode: true, mealBuilderDayId: firstDay.id, selectedDayId: firstDay.id });
+                }
+            },
 
             addItemToMeal: (mealId, food, quantity, unit) => {
                 const { days } = get();

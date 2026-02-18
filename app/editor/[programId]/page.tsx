@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 export default function EditorPage() {
     const params = useParams();
     const planId = params.programId as string; // Using existing route param
-    const { initializeStore, loadDays, resetStore, planId: storePlanId, days } = useDietStore();
+    const { initializeStore, loadDays, resetStore, planId: storePlanId, days, autoEnterBuilder } = useDietStore();
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -64,6 +64,10 @@ export default function EditorPage() {
                 }));
 
                 loadDays(loadedDays);
+
+                // Auto-enter builder mode for the first day
+                // This skips the weekly grid and opens the editor directly
+                setTimeout(() => autoEnterBuilder(), 0);
 
             } catch (err) {
                 console.error(err);
