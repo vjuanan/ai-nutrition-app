@@ -109,7 +109,7 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
     return (
         <DndContext
             sensors={sensors}
-            collisionDetection={pointerWithin} // Reverted to pointerWithin
+            collisionDetection={closestCenter} // Using closestCenter/Corners as fallback
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
