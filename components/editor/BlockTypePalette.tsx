@@ -1,7 +1,7 @@
 'use client';
 
 import { useDraggable } from '@dnd-kit/core';
-import { Coffee, Apple, Sun, Utensils, Moon } from 'lucide-react';
+import { Coffee, Apple, Sun, Utensils, Moon, Timer } from 'lucide-react';
 import React from 'react';
 
 export const MEAL_BLOCK_TYPES = [
@@ -38,14 +38,43 @@ export const MEAL_BLOCK_TYPES = [
         ring: 'ring-purple-200'
     },
     {
-        id: 'Ayuno',
-        label: 'Ayuno (WIP)',
-        description: 'Periodo sin ingesta',
+        id: 'Cena',
+        label: 'Cena',
+        description: 'Última comida',
         icon: Moon,
-        className: 'bg-blue-50 border-blue-100 text-blue-600',
-        ring: 'ring-blue-200'
+        className: 'bg-indigo-50 border-indigo-100 text-indigo-600',
+        ring: 'ring-indigo-200'
+    },
+    {
+        id: 'Ayuno',
+        label: 'Ayuno',
+        description: 'Periodo sin ingesta',
+        icon: Timer,
+        className: 'bg-slate-50 border-slate-100 text-slate-600',
+        ring: 'ring-slate-200'
     }
 ];
+
+export function PaletteItem({ type, className, style }: { type: typeof MEAL_BLOCK_TYPES[0]; className?: string; style?: React.CSSProperties }) {
+    return (
+        <div
+            style={style}
+            className={`
+                relative flex items-center gap-3 p-3 rounded-xl border-2 transition-all 
+                ${type.className} 
+                ${className || ''}
+            `}
+        >
+            <div className="w-10 h-10 rounded-lg bg-white/60 flex items-center justify-center shrink-0">
+                <type.icon size={20} />
+            </div>
+            <div>
+                <h3 className="font-bold text-sm">{type.label}</h3>
+                <p className="text-[10px] opacity-70 font-medium">{type.description}</p>
+            </div>
+        </div>
+    );
+}
 
 function DraggableBlock({ type }: { type: typeof MEAL_BLOCK_TYPES[0] }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -61,25 +90,14 @@ function DraggableBlock({ type }: { type: typeof MEAL_BLOCK_TYPES[0] }) {
     } : undefined;
 
     return (
-        <div
-            ref={setNodeRef}
-            {...listeners}
-            {...attributes}
-            style={style}
-            className={`
-                relative flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-grab active:cursor-grabbing
-                ${type.className} 
-                ${isDragging ? 'opacity-50 z-50 shadow-xl scale-105 rotate-2' : 'hover:scale-[1.02] hover:shadow-md'}
-                ${isDragging ? type.ring : 'border-transparent'}
-            `}
-        >
-            <div className="w-10 h-10 rounded-lg bg-white/60 flex items-center justify-center shrink-0">
-                <type.icon size={20} />
-            </div>
-            <div>
-                <h3 className="font-bold text-sm">{type.label}</h3>
-                <p className="text-[10px] opacity-70 font-medium">{type.description}</p>
-            </div>
+        <div ref={setNodeRef} {...listeners} {...attributes} style={style} className="cursor-grab active:cursor-grabbing">
+            <PaletteItem
+                type={type}
+                className={`
+                    ${isDragging ? 'opacity-50 z-50 shadow-xl scale-105 rotate-2' : 'hover:scale-[1.02] hover:shadow-md'}
+                    ${isDragging ? type.ring : 'border-transparent'}
+                `}
+            />
         </div>
     );
 }

@@ -2,7 +2,7 @@
 
 import { useDietStore, DraftMeal } from '@/lib/store';
 import { MealBlockCard } from './MealBlockCard';
-import { BlockTypePalette } from './BlockTypePalette';
+import { BlockTypePalette, MEAL_BLOCK_TYPES, PaletteItem } from './BlockTypePalette';
 import { MealEditModal } from './MealEditModal';
 import {
     Plus,
@@ -40,11 +40,17 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
         useSensor(KeyboardSensor)
     );
 
+    const [activeDragItemType, setActiveDragItemType] = useState<string | null>(null);
+
     const handleDragStart = (event: DragStartEvent) => {
-        // Optional: set active item for overlay
+        if (event.active.data.current?.type === 'NewBlock') {
+            setActiveDragItemType(event.active.data.current.blockType);
+        }
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
+        setActiveDragItemType(null); // Clear active drag item
+
         const { active, over } = event;
 
         if (!over || !currentDay) return;
@@ -89,6 +95,8 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
     // Sort meals
     const sortedMeals = [...currentDay.meals].sort((a, b) => a.order - b.order);
 
+    const activePaletteType = activeDragItemType ? MEAL_BLOCK_TYPES.find(t => t.id === activeDragItemType) : null;
+
     return (
         <DndContext
             sensors={sensors}
@@ -102,17 +110,6 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
 
                 {/* Right: Builder Area */}
                 <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-                    {/* Header */}
-                    <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-cv-bg-secondary flex justify-between items-center shrink-0">
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">{dayName}</h2>
-                            <p className="text-xs text-gray-500">Arrastra bloques para construir tu dieta</p>
-                        </div>
-                        <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg text-gray-500">
-                            <span className="sr-only">Cerrar</span>
-                            <ChevronRight size={20} className="rotate-90 md:rotate-0" />
-                        </button>
-                    </div>
 
                     {/* Drop Zone */}
                     <div className="flex-1 overflow-y-auto p-6 bg-slate-100/50 dark:bg-black/50">
@@ -120,7 +117,7 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
                             items={sortedMeals.map(m => m.id)}
                             strategy={verticalListSortingStrategy}
                         >
-                            <div className="max-w-3xl mx-auto space-y-4 min-h-[500px]">
+                            <div className="max-w-3xl mx-auto space-y-4 min-h-[500px] pb-20">
                                 {sortedMeals.map(meal => (
                                     <MealBlockCard
                                         key={meal.id}
@@ -145,9 +142,17 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
                     </div>
                 </div>
 
-                {/* Drag Overlay for visually dragging from palette */}
-                {/* We can skip implementing the visual overlay for now to save complexity, or add it if needed */}
-                {/* To implement properly we need to know WHAT is being dragged */}
+                {/* Drag Overlay */}
+                {createPortal(
+                    <DragOverlay>
+                        {activePaletteType ? (
+                            <div className="w-[280px]">
+                                <PaletteItem type={activePaletteType} className="shadow-2xl scale-105 rotate-2 bg-white" />
+                            </div>
+                        ) : null}
+                    </DragOverlay>,
+                    document.body
+                )}
 
                 {/* Edit Modal */}
                 {selectedMealId && (

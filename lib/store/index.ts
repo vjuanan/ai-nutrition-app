@@ -53,6 +53,8 @@ interface DietStoreState {
     planName: string;
     planDescription: string | null;
     planType: string | null;
+    planObjective: string | null;
+    planClientName: string | null;
 
     // Draft state
     days: DraftDay[];
@@ -74,7 +76,14 @@ interface DietStoreState {
     mealBuilderDayId: string | null;
 
     // Actions
-    initializeStore: (planId: string, name: string, description: string | null, type: string | null) => void;
+    initializeStore: (
+        planId: string,
+        name: string,
+        description: string | null,
+        type: string | null,
+        objective: string | null,
+        clientName: string | null
+    ) => void;
     loadDays: (days: DraftDay[]) => void;
     resetStore: () => void;
 
@@ -105,6 +114,7 @@ interface DietStoreState {
     updateItemInMeal: (mealId: string, index: number, updates: Partial<MealItem>) => void;
 
     // Utility
+    updatePlanClient: (clientName: string | null) => void;
     markAsClean: () => void;
 }
 
@@ -116,6 +126,8 @@ export const useDietStore = create<DietStoreState>()(
             planName: '',
             planDescription: null,
             planType: null,
+            planObjective: null,
+            planClientName: null,
             days: [],
             selectedDayId: null,
             selectedMealId: null,
@@ -128,12 +140,14 @@ export const useDietStore = create<DietStoreState>()(
             mealBuilderDayId: null,
 
             // Actions
-            initializeStore: (planId, name, description, type) => {
+            initializeStore: (planId, name, description, type, objective, clientName) => {
                 set({
                     planId,
                     planName: name,
                     planDescription: description,
                     planType: type,
+                    planObjective: objective,
+                    planClientName: clientName,
                     hasUnsavedChanges: false
                 });
             },
@@ -393,7 +407,8 @@ export const useDietStore = create<DietStoreState>()(
                 set({ days: updatedDays, hasUnsavedChanges: true });
             },
 
-            markAsClean: () => set({ hasUnsavedChanges: false })
+            markAsClean: () => set({ hasUnsavedChanges: false }),
+            updatePlanClient: (clientName) => set({ planClientName: clientName })
         }),
         {
             name: 'diet-store',

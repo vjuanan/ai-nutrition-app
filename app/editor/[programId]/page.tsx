@@ -43,7 +43,9 @@ export default function EditorPage() {
                     planData.id,
                     planData.name,
                     planData.description,
-                    planData.type
+                    planData.type,
+                    planData.objective || null,
+                    planData.client?.name || null // Assuming relation is expanded
                 );
 
                 // Load Days
