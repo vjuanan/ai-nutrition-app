@@ -223,54 +223,52 @@ export default function MealPlansPage() {
         }, 1000);
     }
 
+    const actions = (
+        <div className="flex items-center gap-2">
+            <div className="flex items-center p-1 bg-gray-100/50 rounded-lg border border-transparent hover:border-slate-200 transition-colors">
+                <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1.5 rounded-md transition-all ${viewMode === 'grid'
+                        ? 'bg-white text-cv-accent shadow-sm'
+                        : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                    title="Vista Cuadrícula"
+                >
+                    <LayoutGrid size={16} />
+                </button>
+                <button
+                    onClick={() => setViewMode('table')}
+                    className={`p-1.5 rounded-md transition-all ${viewMode === 'table'
+                        ? 'bg-white text-cv-accent shadow-sm'
+                        : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                    title="Vista Lista"
+                >
+                    <List size={16} />
+                </button>
+            </div>
+
+            {isSelectionMode ? (
+                <button
+                    onClick={() => setProgramToDelete('BULK')}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors text-sm font-medium"
+                    title="Eliminar selección"
+                >
+                    <Trash2 size={16} />
+                    <span className="hidden sm:inline">Eliminar ({selectedPrograms.size})</span>
+                </button>
+            ) : (
+                <div className="scale-90 origin-right">
+                    <GlobalCreateButton />
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <>
-            <Topbar />
-            <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
-                <div className="flex justify-end gap-2 py-4 mb-4">
-                    <div className="flex items-center gap-3">
-                        {/* View Toggle */}
-                        <div className="flex items-center p-1 bg-gray-100 dark:bg-slate-800 rounded-lg mr-2">
-                            <button
-                                onClick={() => setViewMode('grid')}
-                                className={`p-1.5 rounded-md transition-all ${viewMode === 'grid'
-                                    ? 'bg-white dark:bg-slate-700 text-cv-accent shadow-sm'
-                                    : 'text-gray-400 hover:text-gray-600 dark:text-slate-500'
-                                    }`}
-                                title="Vista Cuadrícula"
-                            >
-                                <LayoutGrid size={18} />
-                            </button>
-                            <button
-                                onClick={() => setViewMode('table')}
-                                className={`p-1.5 rounded-md transition-all ${viewMode === 'table'
-                                    ? 'bg-white dark:bg-slate-700 text-cv-accent shadow-sm'
-                                    : 'text-gray-400 hover:text-gray-600 dark:text-slate-500'
-                                    }`}
-                                title="Vista Lista"
-                            >
-                                <List size={18} />
-                            </button>
-                        </div>
-
-                        {isSelectionMode ? (
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setProgramToDelete('BULK')} // Open confirmation modal correctly
-                                    className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors flex items-center justify-center relative group"
-                                    title="Eliminar selección"
-                                >
-                                    <Trash2 size={18} />
-                                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white font-medium">
-                                        {selectedPrograms.size}
-                                    </span>
-                                </button>
-                            </div>
-                        ) : (
-                            <GlobalCreateButton />
-                        )}
-                    </div>
-                </div>
+            <Topbar actions={actions} />
+            <div className="max-w-7xl mx-auto">
                 {/* Programs Grid/Table */}
                 {isLoading ? (
                     <div className="flex items-center justify-center py-12">

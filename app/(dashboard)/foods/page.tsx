@@ -1,4 +1,4 @@
-import { Topbar } from '@/components/app-shell/Topbar';
+
 import { getFoods } from '@/lib/actions';
 import { FoodList } from '@/components/foods/FoodList';
 
@@ -21,7 +21,7 @@ export default async function FoodsPage({
 
     return (
         <>
-            <Topbar />
+
             <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
 
                 <FoodList

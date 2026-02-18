@@ -269,35 +269,38 @@ export default function GymsPage() {
         }
     };
 
+    const actions = (
+        <div className="flex items-center gap-2">
+            {selectedGyms.size > 0 && (
+                <button
+                    onClick={handleBulkDelete}
+                    disabled={isBulkDeleting}
+                    className="bg-red-500/10 text-red-500 hover:bg-red-500/20 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                >
+                    {isBulkDeleting ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
+                    <span className="hidden sm:inline">Eliminar ({selectedGyms.size})</span>
+                </button>
+            )}
+            <div className="bg-slate-100/50 hover:bg-slate-100 transition-colors px-3 py-1.5 rounded-md flex items-center gap-2 border border-transparent hover:border-slate-200">
+                <Building2 className="text-cv-text-secondary" size={14} />
+                <span className="font-mono font-bold text-cv-text-primary text-xs">{filteredGyms.length}</span>
+            </div>
+            <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center justify-center gap-2 px-3 py-1.5 bg-cv-accent hover:bg-cv-accent/90 text-white rounded-lg transition-colors text-sm font-medium shadow-sm shadow-cv-accent/20"
+                title="Añadir Gimnasio"
+            >
+                <Plus size={16} />
+                <span className="hidden sm:inline">Nuevo</span>
+            </button>
+        </div>
+    );
+
     return (
         <>
-            <Topbar />
+            <Topbar actions={actions} />
             <div className="max-w-6xl mx-auto">
-                <div className="flex justify-end gap-2 py-4 mb-4">
-                    <>
-                        {selectedGyms.size > 0 && (
-                            <button
-                                onClick={handleBulkDelete}
-                                disabled={isBulkDeleting}
-                                className="bg-red-500/10 text-red-500 hover:bg-red-500/20 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors mr-2"
-                            >
-                                {isBulkDeleting ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
-                                Eliminar ({selectedGyms.size})
-                            </button>
-                        )}
-                        <div className="bg-slate-100 px-3 py-1.5 rounded-md flex items-center gap-2">
-                            <Building2 className="text-cv-text-secondary" size={16} />
-                            <span className="font-mono font-bold text-cv-text-primary text-sm">{filteredGyms.length}</span>
-                        </div>
-                        <button
-                            onClick={() => setShowAddModal(true)}
-                            className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 active:scale-95 transition-all duration-200"
-                            title="Añadir Gimnasio"
-                        >
-                            <Plus size={20} />
-                        </button>
-                    </>
-                </div>
+
 
                 {bulkDeleteMessage && (
                     <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 text-sm ${bulkDeleteMessage.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'

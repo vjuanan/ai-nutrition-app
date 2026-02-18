@@ -8,13 +8,15 @@ import { NotificationBell } from './NotificationBell';
 import { UserAvatar } from './UserAvatar';
 import { InviteDialog } from './InviteDialog';
 
+
 interface TopbarProps {
     title?: string;
     actions?: React.ReactNode;
     prefixActions?: React.ReactNode;
+    filters?: React.ReactNode;
 }
 
-export function Topbar({ title, actions, prefixActions }: TopbarProps) {
+export function Topbar({ title, actions, prefixActions, filters }: TopbarProps) {
     const { isSidebarCollapsed } = useAppStore();
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -44,28 +46,34 @@ export function Topbar({ title, actions, prefixActions }: TopbarProps) {
                 <div className="flex items-center gap-4">
                 </div>
 
-                {/* Center: Search */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[320px]">
-                    <div className="relative group w-full">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cv-text-tertiary group-hover:text-cv-text-secondary transition-colors" />
-                        <input
-                            type="text"
-                            placeholder="Buscar..."
-                            defaultValue={searchParams.get('q')?.toString()}
-                            onChange={(e) => handleSearch(e.target.value)}
-                            className="
-                            w-full pl-10 pr-4 py-2 rounded-full
-                            bg-slate-100
-                            text-sm text-cv-text-primary
-                            placeholder:text-cv-text-tertiary
-                            focus:outline-none focus:ring-1 focus:ring-cv-accent
-                            transition-all duration-200
-                        "
-                        />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                            {/* Hidden for now unless we implement global shortcut again */}
+                {/* Center: Search & Filters */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-3 w-full max-w-3xl justify-center pointer-events-none">
+                    <div className="pointer-events-auto w-full max-w-[320px]">
+                        <div className="relative group w-full">
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cv-text-tertiary group-hover:text-cv-text-secondary transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Buscar..."
+                                defaultValue={searchParams.get('q')?.toString()}
+                                onChange={(e) => handleSearch(e.target.value)}
+                                className="
+                                w-full pl-10 pr-4 py-2 rounded-full
+                                bg-slate-100/80 hover:bg-slate-100 focus:bg-white
+                                text-sm text-cv-text-primary
+                                placeholder:text-cv-text-tertiary
+                                focus:outline-none focus:ring-1 focus:ring-cv-accent
+                                border border-transparent focus:border-cv-accent/20
+                                transition-all duration-200
+                            "
+                            />
                         </div>
                     </div>
+
+                    {filters && (
+                        <div className="pointer-events-auto flex items-center gap-2">
+                            {filters}
+                        </div>
+                    )}
                 </div>
 
                 {/* Right: Actions */}
