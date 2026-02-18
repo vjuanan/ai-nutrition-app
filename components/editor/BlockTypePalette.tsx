@@ -90,7 +90,13 @@ function DraggableBlock({ type }: { type: typeof MEAL_BLOCK_TYPES[0] }) {
     } : undefined;
 
     return (
-        <div ref={setNodeRef} {...listeners} {...attributes} style={style} className="cursor-grab active:cursor-grabbing">
+        <div
+            ref={setNodeRef}
+            {...listeners}
+            {...attributes}
+            style={style}
+            className={`cursor-grab active:cursor-grabbing ${isDragging ? 'pointer-events-none' : ''}`}
+        >
             <PaletteItem
                 type={type}
                 className={`

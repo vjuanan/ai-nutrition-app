@@ -62,16 +62,7 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
 
         const { active, over } = event;
 
-        console.log('--- DND DEBUG ---');
-        console.log('active:', active);
-        console.log('over:', over);
-        console.log('active.data.current:', active.data.current);
-        console.log('currentDay:', currentDay);
-
-        if (!over || !currentDay) {
-            console.log('DND: Returned because over or currentDay is missing');
-            return;
-        }
+        if (!over || !currentDay) return;
 
         // 1. Drop from Palette (New Block)
         // Ensure active.data.current exists before accessing properties
@@ -118,7 +109,7 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
     return (
         <DndContext
             sensors={sensors}
-            collisionDetection={rectIntersection} // Use rectIntersection for better container dropping
+            collisionDetection={pointerWithin} // Reverted to pointerWithin
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
