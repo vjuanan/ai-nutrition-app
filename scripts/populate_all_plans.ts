@@ -69,9 +69,9 @@ async function populateAllMikeIsraelPlans() {
     console.log(`Found ${plans.length} plans to populate\n`);
 
     // Pre-fetch all food IDs
-    const foodNames = [...new Set(
+    const foodNames = Array.from(new Set(
         Object.values(mealStructure).flatMap(items => items.map(i => i.name))
-    )];
+    ));
 
     const foodMap: Record<string, string> = {};
     for (const name of foodNames) {

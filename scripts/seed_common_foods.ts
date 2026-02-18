@@ -165,7 +165,7 @@ async function seedFoods() {
                 console.error(`❌ Error inserting ${food.name}:`, error.message);
                 errors++;
             } else {
-                console.log(`✅ Inserted: ${food.name} (${food.category})`);
+                console.log(`✅ Inserted: ${food.name}`);
                 inserted++;
             }
         }
