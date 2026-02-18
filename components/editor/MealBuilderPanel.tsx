@@ -127,13 +127,15 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
                 <BlockTypePalette />
 
                 {/* Right: Builder Area */}
-                <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+                <div
+                    ref={setDroppableRef}
+                    id="day-drop-zone"
+                    className={`flex-1 flex flex-col h-full overflow-hidden relative transition-colors ${isOver ? 'bg-slate-50 dark:bg-slate-900' : ''}`}
+                >
 
-                    {/* Drop Zone */}
+                    {/* Drop Zone Content */}
                     <div
-                        ref={setDroppableRef}
-                        id="day-drop-zone"
-                        className={`flex-1 overflow-y-auto p-6 transition-colors ${isOver ? 'bg-slate-200/50 dark:bg-slate-800/50' : 'bg-slate-100/50 dark:bg-black/50'}`}
+                        className="flex-1 overflow-y-auto p-6"
                     >
                         <SortableContext
                             items={sortedMeals.map(m => m.id)}
