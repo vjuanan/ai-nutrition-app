@@ -193,7 +193,7 @@ export default function AthletesPage() {
             fetchAthletes();
         } catch (e) {
             console.error('Error adding athlete:', e);
-            alert('Error al añadir atleta. Verifica tu conexión.');
+            alert('Error al añadir paciente. Verifica tu conexión.');
         }
         setIsAdding(false);
     }
@@ -212,7 +212,7 @@ export default function AthletesPage() {
             await fetchAthletes();
         } catch (e) {
             console.error(e);
-            alert('Error al eliminar atleta');
+            alert('Error al eliminar paciente');
         } finally {
             setIsDeleting(false);
             setAthleteToDelete(null);
@@ -244,7 +244,7 @@ export default function AthletesPage() {
 
     async function handleBulkDelete() {
         if (selectedAthletes.size === 0) return;
-        if (!confirm(`¿ESTÁS SEGURO? Se eliminarán ${selectedAthletes.size} atletas permanentemente. Esta acción no se puede deshacer.`)) return;
+        if (!confirm(`¿ESTÁS SEGURO? Se eliminarán ${selectedAthletes.size} pacientes permanentemente. Esta acción no se puede deshacer.`)) return;
 
         setIsBulkDeleting(true);
         setBulkDeleteMessage(null);
@@ -258,11 +258,11 @@ export default function AthletesPage() {
 
             if (failures.length > 0) {
                 setBulkDeleteMessage({
-                    text: `Se eliminaron ${successes.length} atletas. Error al eliminar ${failures.length} atletas.`,
+                    text: `Se eliminaron ${successes.length} pacientes. Error al eliminar ${failures.length} pacientes.`,
                     type: 'error'
                 });
             } else {
-                setBulkDeleteMessage({ text: `${successes.length} atletas eliminados correctamente`, type: 'success' });
+                setBulkDeleteMessage({ text: `${successes.length} pacientes eliminados correctamente`, type: 'success' });
             }
 
             setSelectedAthletes(new Set());
@@ -337,7 +337,7 @@ export default function AthletesPage() {
             <button
                 onClick={() => setShowAddModal(true)}
                 className="flex items-center justify-center gap-2 px-3 py-1.5 bg-cv-accent hover:bg-cv-accent/90 text-white rounded-lg transition-colors text-sm font-medium shadow-sm shadow-cv-accent/20"
-                title="Añadir Atleta"
+                title="Añadir Paciente"
             >
                 <Plus size={16} />
                 <span className="hidden sm:inline">Nuevo</span>
@@ -370,13 +370,13 @@ export default function AthletesPage() {
                     ) : filteredAthletes.length === 0 ? (
                         <div className="text-center py-12">
                             <User size={48} className="mx-auto text-cv-text-tertiary mb-4" />
-                            <p className="text-cv-text-secondary">No hay atletas aún</p>
+                            <p className="text-cv-text-secondary">No hay pacientes aún</p>
                             <button
                                 onClick={() => setShowAddModal(true)}
                                 className="cv-btn-primary mt-4"
                             >
                                 <Plus size={18} />
-                                Añade tu primer atleta
+                                Añade tu primer paciente
                             </button>
                         </div>
                     ) : (
@@ -392,7 +392,7 @@ export default function AthletesPage() {
                                                 onChange={toggleSelectAll}
                                             />
                                         </th>
-                                        <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Atleta</th>
+                                        <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Paciente</th>
                                         <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Coach Asignado</th>
                                         <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Nivel</th>
                                         <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Objetivo</th>
@@ -515,7 +515,7 @@ export default function AthletesPage() {
                                                         <button
                                                             onClick={(e) => promptDelete(e, athlete.id)}
                                                             className="p-2 hover:bg-red-500/10 rounded-lg text-cv-text-tertiary hover:text-red-500 transition-colors"
-                                                            title="Eliminar Atleta"
+                                                            title="Eliminar Paciente"
                                                         >
                                                             <Trash2 size={18} />
                                                         </button>
@@ -535,7 +535,7 @@ export default function AthletesPage() {
                         <div className="cv-overlay" onClick={() => setShowAddModal(false)} />
                         <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-cv-bg-secondary border border-cv-border rounded-lg p-6 z-50 max-h-[90vh] overflow-y-auto">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-semibold text-cv-text-primary">Nuevo Atleta / Cliente</h2>
+                                <h2 className="text-xl font-semibold text-cv-text-primary">Nuevo Paciente</h2>
                                 <button onClick={() => setShowAddModal(false)} className="cv-btn-ghost p-1">
                                     <X size={18} />
                                 </button>
@@ -551,14 +551,14 @@ export default function AthletesPage() {
                                             onClick={() => setFormData(prev => ({ ...prev, type: 'athlete' }))}
                                             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${formData.type === 'athlete' ? 'bg-cv-accent text-slate-900' : 'bg-cv-bg-tertiary text-cv-text-secondary'}`}
                                         >
-                                            Atleta Individual
+                                            Paciente
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setFormData(prev => ({ ...prev, type: 'gym' }))}
                                             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${formData.type === 'gym' ? 'bg-cv-accent text-slate-900' : 'bg-cv-bg-tertiary text-cv-text-secondary'}`}
                                         >
-                                            Gimnasio / Box
+                                            Clínica / Centro
                                         </button>
                                     </div>
                                 </div>
@@ -803,9 +803,9 @@ export default function AthletesPage() {
                                     <AlertTriangle size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-cv-text-primary">¿Eliminar atleta?</h3>
+                                    <h3 className="text-lg font-bold text-cv-text-primary">¿Eliminar paciente?</h3>
                                     <p className="text-sm text-cv-text-secondary mt-1">
-                                        Se eliminará al atleta y todo su historial de asignaciones.
+                                        Se eliminará al paciente y todo su historial de asignaciones.
                                     </p>
                                 </div>
                                 <div className="flex gap-3 w-full mt-2">

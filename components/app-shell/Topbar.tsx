@@ -53,7 +53,13 @@ export function Topbar({ title, actions, prefixActions, filters }: TopbarProps) 
                             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cv-text-tertiary group-hover:text-cv-text-secondary transition-colors" />
                             <input
                                 type="text"
-                                placeholder="Buscar..."
+                                placeholder={
+                                    pathname.includes('/athletes') ? 'Buscar pacientes...' :
+                                        pathname.includes('/gyms') ? 'Buscar clínicas...' :
+                                            pathname.includes('/foods') ? 'Buscar alimentos...' :
+                                                pathname.includes('/meal-plans') ? 'Buscar planes...' :
+                                                    'Buscar...'
+                                }
                                 defaultValue={searchParams.get('q')?.toString()}
                                 onChange={(e) => handleSearch(e.target.value)}
                                 className="

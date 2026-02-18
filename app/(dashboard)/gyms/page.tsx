@@ -142,7 +142,7 @@ export default function GymsPage() {
             setShowAddModal(false);
             fetchGyms();
         } catch (e) {
-            alert('Error al añadir gimnasio');
+            alert('Error al añadir clínica');
         }
         setIsAdding(false);
     }
@@ -161,7 +161,7 @@ export default function GymsPage() {
             await fetchGyms();
         } catch (e) {
             console.error(e);
-            alert('Error al eliminar gimnasio');
+            alert('Error al eliminar clínica');
         } finally {
             setIsDeleting(false);
             setGymToDelete(null);
@@ -194,7 +194,7 @@ export default function GymsPage() {
 
     async function handleBulkDelete() {
         if (selectedGyms.size === 0) return;
-        if (!confirm(`¿ESTÁS SEGURO? Se eliminarán ${selectedGyms.size} gimnasios permanentemente. Esta acción no se puede deshacer.`)) return;
+        if (!confirm(`¿ESTÁS SEGURO? Se eliminarán ${selectedGyms.size} clínicas permanentemente. Esta acción no se puede deshacer.`)) return;
 
         setIsBulkDeleting(true);
         setBulkDeleteMessage(null);
@@ -208,11 +208,11 @@ export default function GymsPage() {
 
             if (failures.length > 0) {
                 setBulkDeleteMessage({
-                    text: `Se eliminaron ${successes.length} gimnasios. Error al eliminar ${failures.length} gimnasios.`,
+                    text: `Se eliminaron ${successes.length} clínicas. Error al eliminar ${failures.length} clínicas.`,
                     type: 'error'
                 });
             } else {
-                setBulkDeleteMessage({ text: `${successes.length} gimnasios eliminados correctamente`, type: 'success' });
+                setBulkDeleteMessage({ text: `${successes.length} clínicas eliminadas correctamente`, type: 'success' });
             }
 
             setSelectedGyms(new Set());
@@ -288,7 +288,7 @@ export default function GymsPage() {
             <button
                 onClick={() => setShowAddModal(true)}
                 className="flex items-center justify-center gap-2 px-3 py-1.5 bg-cv-accent hover:bg-cv-accent/90 text-white rounded-lg transition-colors text-sm font-medium shadow-sm shadow-cv-accent/20"
-                title="Añadir Gimnasio"
+                title="Añadir Clínica"
             >
                 <Plus size={16} />
                 <span className="hidden sm:inline">Nuevo</span>
@@ -319,13 +319,13 @@ export default function GymsPage() {
                     ) : filteredGyms.length === 0 ? (
                         <div className="text-center py-12">
                             <Building2 size={48} className="mx-auto text-cv-text-tertiary mb-4" />
-                            <p className="text-cv-text-secondary">No hay gimnasios aún</p>
+                            <p className="text-cv-text-secondary">No hay clínicas aún</p>
                             <button
                                 onClick={() => setShowAddModal(true)}
                                 className="cv-btn-primary mt-4"
                             >
                                 <Plus size={18} />
-                                Añade tu primer gimnasio
+                                Añade tu primera clínica
                             </button>
                         </div>
                     ) : (
@@ -341,8 +341,7 @@ export default function GymsPage() {
                                                 onChange={toggleSelectAll}
                                             />
                                         </th>
-                                        <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Gimnasio</th>
-                                        <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Gimnasio</th>
+                                        <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Clínica</th>
                                         <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Account Manager</th>
                                         <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Detalles</th>
                                         <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Propietario / Contacto</th>
@@ -453,14 +452,14 @@ export default function GymsPage() {
                                                         <Link
                                                             href={`/gyms/${gym.id}`}
                                                             className="p-2 hover:bg-cv-bg-elevated rounded-lg text-cv-text-tertiary hover:text-cv-text-primary transition-colors"
-                                                            title="Ver Gimnasio"
+                                                            title="Ver Clínica"
                                                         >
                                                             <Building2 size={18} />
                                                         </Link>
                                                         <button
                                                             onClick={(e) => promptDelete(e, gym.id)}
                                                             className="p-2 hover:bg-red-500/10 rounded-lg text-cv-text-tertiary hover:text-red-500 transition-colors"
-                                                            title="Eliminar Gimnasio"
+                                                            title="Eliminar Clínica"
                                                         >
                                                             <Trash2 size={18} />
                                                         </button>
@@ -480,7 +479,7 @@ export default function GymsPage() {
                         <div className="cv-overlay" onClick={() => setShowAddModal(false)} />
                         <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-cv-bg-secondary border border-cv-border rounded-lg p-6 z-50 max-h-[90vh] overflow-y-auto">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-semibold text-cv-text-primary">Nuevo Gimnasio / Cliente B2B</h2>
+                                <h2 className="text-xl font-semibold text-cv-text-primary">Nueva Clínica / Centro</h2>
                                 <button onClick={() => setShowAddModal(false)} className="cv-btn-ghost p-1">
                                     <X size={18} className="text-cv-text-tertiary" />
                                 </button>
@@ -489,7 +488,7 @@ export default function GymsPage() {
                             <div className="space-y-4">
                                 {/* Gym Info */}
                                 <div>
-                                    <label className="block text-sm font-medium text-cv-text-secondary mb-2">Nombre del Gimnasio *</label>
+                                    <label className="block text-sm font-medium text-cv-text-secondary mb-2">Nombre de la Clínica *</label>
                                     <input
                                         type="text"
                                         value={formData.name}
@@ -574,7 +573,7 @@ export default function GymsPage() {
                                     className="cv-btn-primary flex-1"
                                 >
                                     {isAdding ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-                                    Guardar Gimnasio
+                                    Guardar Clínica
                                 </button>
                             </div>
                         </div>
@@ -591,9 +590,9 @@ export default function GymsPage() {
                                     <AlertTriangle size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-cv-text-primary">¿Eliminar gimnasio?</h3>
+                                    <h3 className="text-lg font-bold text-cv-text-primary">¿Eliminar clínica?</h3>
                                     <p className="text-sm text-cv-text-secondary mt-1">
-                                        Se eliminará el gimnasio y todos sus datos.
+                                        Se eliminará la clínica y todos sus datos.
                                     </p>
                                 </div>
                                 <div className="flex gap-3 w-full mt-2">

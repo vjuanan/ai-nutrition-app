@@ -143,7 +143,7 @@ export function CommandPalette() {
                                 <Search size={20} className="text-cv-text-tertiary" />
                                 <input
                                     type="text"
-                                    placeholder="Search athletes, gyms, programs..."
+                                    placeholder="Buscar pacientes, clínicas, planes..."
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     className="flex-1 bg-transparent text-cv-text-primary placeholder:text-cv-text-tertiary focus:outline-none"

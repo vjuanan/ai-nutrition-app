@@ -91,7 +91,7 @@ export default function DashboardPage() {
                             </div>
                             <div className="space-y-2">
                                 <h3 className="text-2xl font-semibold text-cv-text-primary">Ver Pacientes</h3>
-                                <p className="text-cv-text-tertiary">Gestiona tus atletas y sus progresos</p>
+                                <p className="text-cv-text-tertiary">Gestiona tus pacientes y sus progresos</p>
                             </div>
                             <div className="mt-auto pt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
                                 <span className="flex items-center gap-2 text-emerald-500 font-medium">
