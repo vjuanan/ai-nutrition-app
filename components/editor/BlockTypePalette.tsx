@@ -130,16 +130,21 @@ function DraggableBlock({ type, onClick }: { type: (typeof MEAL_BLOCK_TYPES)[0];
             {...listeners}
             {...attributes}
             style={style}
-            onClick={onClick}
             className={`cursor-grab active:cursor-grabbing ${isDragging ? 'pointer-events-none' : ''}`}
         >
-            <PaletteItem
-                type={type}
-                className={`
-                    ${isDragging ? 'opacity-50 z-50 shadow-xl scale-105 rotate-2' : 'hover:scale-[1.02] hover:shadow-md'}
-                    ${isDragging ? type.ring : 'border-transparent'}
-                `}
-            />
+            <div onClick={(e) => {
+                console.log('BLOCK: Inner Click Triggered', type.id);
+                e.stopPropagation(); // Try preventing propagation to dnd listeners if possible/needed
+                onClick?.();
+            }}>
+                <PaletteItem
+                    type={type}
+                    className={`
+                        ${isDragging ? 'opacity-50 z-50 shadow-xl scale-105 rotate-2' : 'hover:scale-[1.02] hover:shadow-md'}
+                        ${isDragging ? type.ring : 'border-transparent'}
+                    `}
+                />
+            </div>
         </div>
     );
 }
