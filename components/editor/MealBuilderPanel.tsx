@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, useDroppable, pointerWithin } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, useDroppable, pointerWithin, rectIntersection } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { createPortal } from 'react-dom';
@@ -109,7 +109,7 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
     return (
         <DndContext
             sensors={sensors}
-            collisionDetection={pointerWithin} // Use pointerWithin for better container dropping
+            collisionDetection={rectIntersection} // Use rectIntersection for better container dropping
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
