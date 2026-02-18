@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, useDroppable, pointerWithin, rectIntersection } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, useDroppable, pointerWithin } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { createPortal } from 'react-dom';
@@ -109,7 +109,7 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
     return (
         <DndContext
             sensors={sensors}
-            collisionDetection={closestCenter} // Using closestCenter/Corners as fallback
+            collisionDetection={closestCenter} // Using closestCenter as fallback
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
@@ -123,37 +123,36 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
                     id="day-drop-zone"
                     className={`flex-1 flex flex-col h-full overflow-hidden relative transition-colors ${isOver ? 'bg-slate-50 dark:bg-slate-900' : ''}`}
                 >
-
                     {/* Drop Zone Content */}
-                    <div
-                        className="flex-1 overflow-y-auto p-6"
-                    >
-                        <SortableContext
-                            items={sortedMeals.map(m => m.id)}
-                            strategy={verticalListSortingStrategy}
-                        >
+                    <div className="flex-1 overflow-y-auto p-6">
+                        {sortedMeals.length > 0 ? (
+                            <SortableContext
+                                items={sortedMeals.map(m => m.id)}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                <div className="max-w-3xl mx-auto space-y-4 min-h-[500px] pb-20">
+                                    {sortedMeals.map(meal => (
+                                        <MealBlockCard
+                                            key={meal.id}
+                                            meal={meal}
+                                            isSelected={selectedMealId === meal.id}
+                                            onClick={() => selectMeal(meal.id)}
+                                            onDelete={(e) => deleteMeal(meal.id)}
+                                        />
+                                    ))}
+                                </div>
+                            </SortableContext>
+                        ) : (
                             <div className="max-w-3xl mx-auto space-y-4 min-h-[500px] pb-20">
-                                {sortedMeals.map(meal => (
-                                    <MealBlockCard
-                                        key={meal.id}
-                                        meal={meal}
-                                        isSelected={selectedMealId === meal.id}
-                                        onClick={() => selectMeal(meal.id)}
-                                        onDelete={(e) => deleteMeal(meal.id)}
-                                    />
-                                ))}
-
-                                {sortedMeals.length === 0 && (
-                                    <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl h-64 flex flex-col items-center justify-center text-gray-400 pointer-events-none">
-                                        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                                            <Utensils size={24} className="opacity-50" />
-                                        </div>
-                                        <p className="font-medium">Tu día está vacío</p>
-                                        <p className="text-sm opacity-60 mt-1">Arrastra un bloque desde la izquierda para comenzar</p>
+                                <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl h-64 flex flex-col items-center justify-center text-gray-400 pointer-events-none">
+                                    <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                                        <Utensils size={24} className="opacity-50" />
                                     </div>
-                                )}
+                                    <p className="font-medium">Tu día está vacío</p>
+                                    <p className="text-sm opacity-60 mt-1">Arrastra un bloque desde la izquierda para comenzar</p>
+                                </div>
                             </div>
-                        </SortableContext>
+                        )}
                     </div>
                 </div>
 
