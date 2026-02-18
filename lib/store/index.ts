@@ -167,11 +167,13 @@ export const useDietStore = create<DietStoreState>()(
             selectMeal: (mealId) => set({ selectedMealId: mealId }),
 
             addMeal: (dayId, name) => {
+                console.log('STORE: addMeal called', { dayId, name });
                 const { days } = get();
                 const tempId = generateTempId();
 
                 const updatedDays = days.map(day => {
                     if (day.id === dayId) {
+                        console.log('STORE: Found day, adding meal', tempId);
                         return {
                             ...day,
                             meals: [
@@ -192,6 +194,7 @@ export const useDietStore = create<DietStoreState>()(
                     return day;
                 });
 
+                console.log('STORE: Updated days', updatedDays);
                 set({ days: updatedDays, hasUnsavedChanges: true, selectedMealId: tempId });
             },
 
