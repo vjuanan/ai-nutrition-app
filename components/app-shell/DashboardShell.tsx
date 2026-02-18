@@ -23,6 +23,7 @@ export function DashboardShell({ children, role }: DashboardShellProps) {
 
     return (
         <div className="min-h-screen bg-white">
+            {/* Forced update for layout fix */}
             <Sidebar role={role} />
             <CommandPalette />
 
