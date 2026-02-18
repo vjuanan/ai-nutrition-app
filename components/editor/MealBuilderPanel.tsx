@@ -62,7 +62,16 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
 
         const { active, over } = event;
 
-        if (!over || !currentDay) return;
+        console.log('--- DND DEBUG ---');
+        console.log('active:', active);
+        console.log('over:', over);
+        console.log('active.data.current:', active.data.current);
+        console.log('currentDay:', currentDay);
+
+        if (!over || !currentDay) {
+            console.log('DND: Returned because over or currentDay is missing');
+            return;
+        }
 
         // 1. Drop from Palette (New Block)
         // Ensure active.data.current exists before accessing properties
