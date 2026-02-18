@@ -159,8 +159,11 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
                 {createPortal(
                     <DragOverlay>
                         {activePaletteType ? (
-                            <div className="w-[280px]">
-                                <PaletteItem type={activePaletteType} className="shadow-2xl scale-105 rotate-2 bg-white" />
+                            <div className="w-[280px] cursor-grabbing">
+                                <PaletteItem
+                                    type={activePaletteType}
+                                    className="shadow-2xl scale-105 rotate-2 bg-white pointer-events-none"
+                                />
                             </div>
                         ) : null}
                     </DragOverlay>,
