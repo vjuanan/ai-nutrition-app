@@ -114,7 +114,7 @@ export default function EditorPage() {
         <AppShell fullScreen={isFullScreen}>
             <PlanEditor
                 planId={planId}
-                planName={currentPlanName}
+                planName={"PLAN DEBUGGING " + currentPlanName}
             />
         </AppShell>
     );
