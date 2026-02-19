@@ -9,7 +9,8 @@ import {
     Apple,
     Cookie,
     Dumbbell,
-    Activity
+    Activity,
+    Plus
 } from 'lucide-react';
 
 export const MEAL_BLOCK_TYPES = [
@@ -71,12 +72,12 @@ export const MEAL_BLOCK_TYPES = [
     },
 ];
 
-export function PaletteItem({ type, className }: { type: (typeof MEAL_BLOCK_TYPES)[0]; className?: string }) {
+export function PaletteItem({ type, className, onAdd }: { type: (typeof MEAL_BLOCK_TYPES)[0]; className?: string; onAdd?: () => void }) {
     const Icon = type.icon;
     return (
         <div className={`
             p-3 rounded-xl border border-dashed transition-all duration-200
-            flex items-center gap-3 bg-white dark:bg-slate-900 group
+            flex items-center gap-3 bg-white dark:bg-slate-900 group relative
             ${type.bg} ${type.color} ${className || 'border-transparent hover:border-current'}
         `}>
             <div className={`
@@ -85,7 +86,28 @@ export function PaletteItem({ type, className }: { type: (typeof MEAL_BLOCK_TYPE
             `}>
                 <Icon size={18} />
             </div>
-            <span className="font-medium text-slate-700 dark:text-slate-200">{type.label}</span>
+            <span className="font-medium text-slate-700 dark:text-slate-200 flex-1">{type.label}</span>
+
+            {onAdd && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        // Also prevent default to avoid any other side effects
+                        e.preventDefault();
+                        console.log('BUTTON: Add Button Triggered', type.id);
+                        onAdd();
+                    }}
+                    onPointerDown={(e) => {
+                        // Crucial: Stop propagation so dnd-kit doesn't start a drag
+                        e.stopPropagation();
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-black/5 dark:hover:bg-white/10 rounded-md text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                    title="Añadir al plan"
+                >
+                    <Plus size={16} />
+                </button>
+            )}
         </div>
     );
 }
@@ -99,7 +121,7 @@ export function BlockTypePalette({ onItemClick }: BlockTypePaletteProps) {
         <div className="w-80 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-black flex flex-col h-full overflow-hidden shadow-sm z-10">
             <div className="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20 backdrop-blur-sm">
                 <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-1">Bloques de Comida</h3>
-                <p className="text-xs text-slate-500 font-medium">Arrastra o haz click para añadir</p>
+                <p className="text-xs text-slate-500 font-medium">Arrastra o usa el botón + para añadir</p>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
@@ -133,12 +155,15 @@ function DraggableBlock({ type, onClick }: { type: (typeof MEAL_BLOCK_TYPES)[0];
             className={`cursor-grab active:cursor-grabbing ${isDragging ? 'pointer-events-none' : ''}`}
         >
             <div onClick={(e) => {
-                console.log('BLOCK: Inner Click Triggered', type.id);
-                e.stopPropagation(); // Try preventing propagation to dnd listeners if possible/needed
-                onClick?.();
+                // Keep this as fallback, but the button should handle it primarily
+                console.log('BLOCK: Inner Wrapper Click', type.id);
+                // Don't stop propagation here to allow default behaviors if needed, 
+                // but usually we want to trigger.
+                if (!isDragging) onClick?.();
             }}>
                 <PaletteItem
                     type={type}
+                    onAdd={onClick}
                     className={`
                         ${isDragging ? 'opacity-50 z-50 shadow-xl scale-105 rotate-2' : 'hover:scale-[1.02] hover:shadow-md'}
                         ${isDragging ? type.ring : 'border-transparent'}
