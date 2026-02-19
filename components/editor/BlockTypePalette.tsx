@@ -72,7 +72,7 @@ export const MEAL_BLOCK_TYPES = [
     },
 ];
 
-export function PaletteItem({ type, className, onAdd }: { type: (typeof MEAL_BLOCK_TYPES)[0]; className?: string; onAdd?: () => void }) {
+export function PaletteItem({ type, className }: { type: (typeof MEAL_BLOCK_TYPES)[0]; className?: string }) {
     const Icon = type.icon;
     return (
         <div className={`
@@ -87,27 +87,6 @@ export function PaletteItem({ type, className, onAdd }: { type: (typeof MEAL_BLO
                 <Icon size={18} />
             </div>
             <span className="font-medium text-slate-700 dark:text-slate-200 flex-1">{type.label}</span>
-
-            {onAdd && (
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        console.log(`BUTTON CLICKED: ${type.id}`);
-                        try {
-                            onAdd();
-                            console.log(`BUTTON ACTION CALLED: ${type.id}`);
-                        } catch (err) {
-                            console.error('BUTTON ACTION ERROR', err);
-                        }
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-black/5 dark:hover:bg-white/10 rounded-md text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 z-50 relative pointer-events-auto"
-                    title="Añadir al plan"
-                >
-                    <Plus size={16} />
-                </button>
-            )}
         </div>
     );
 }
@@ -126,14 +105,31 @@ export function BlockTypePalette({ onItemClick }: BlockTypePaletteProps) {
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
                 {MEAL_BLOCK_TYPES.map((type) => (
-                    <DraggableBlock key={type.id} type={type} onClick={() => onItemClick?.(type.id)} />
+                    <div key={type.id} className="relative group">
+                        <DraggableBlock type={type} />
+
+                        {/* Explicit Add Button - Outside of Draggable Context */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                console.log(`BUTTON (EXTERNAL) CLICKED: ${type.id}`);
+                                onItemClick?.(type.id);
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 z-50 pointer-events-auto"
+                            title="Añadir al plan"
+                            type="button"
+                        >
+                            <Plus size={18} />
+                        </button>
+                    </div>
                 ))}
             </div>
         </div>
     );
 }
 
-function DraggableBlock({ type, onClick }: { type: (typeof MEAL_BLOCK_TYPES)[0]; onClick?: () => void }) {
+function DraggableBlock({ type }: { type: (typeof MEAL_BLOCK_TYPES)[0] }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: `palette-${type.id}`,
         data: {
@@ -154,22 +150,13 @@ function DraggableBlock({ type, onClick }: { type: (typeof MEAL_BLOCK_TYPES)[0];
             style={style}
             className={`cursor-grab active:cursor-grabbing ${isDragging ? 'pointer-events-none' : ''}`}
         >
-            <div onClick={(e) => {
-                // Keep this as fallback, but the button should handle it primarily
-                console.log('BLOCK: Inner Wrapper Click', type.id);
-                // Don't stop propagation here to allow default behaviors if needed, 
-                // but usually we want to trigger.
-                if (!isDragging) onClick?.();
-            }}>
-                <PaletteItem
-                    type={type}
-                    onAdd={onClick}
-                    className={`
-                        ${isDragging ? 'opacity-50 z-50 shadow-xl scale-105 rotate-2' : 'hover:scale-[1.02] hover:shadow-md'}
-                        ${isDragging ? type.ring : 'border-transparent'}
-                    `}
-                />
-            </div>
+            <PaletteItem
+                type={type}
+                className={`
+                    ${isDragging ? 'opacity-50 z-50 shadow-xl scale-105 rotate-2' : 'hover:scale-[1.02] hover:shadow-md'}
+                    ${isDragging ? type.ring : 'border-transparent'}
+                `}
+            />
         </div>
     );
 }
