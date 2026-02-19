@@ -58,7 +58,7 @@ export function MealBlockCard({ meal, isSelected, onClick, onDelete }: MealBlock
         // Simple approach: Map IDs to border colors
         >
             {/* Left Border Color Line */}
-            <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl ${blockType.className.replace('bg-', 'bg-').replace('border-', 'bg-').split(' ')[2].replace('text-', 'bg-')}`}></div>
+            <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl ${blockType.bg.replace('bg-', 'bg-').replace('dark:bg-', 'dark:bg-').split(' ')[0].replace('50', '500').replace('950/30', '500')}`}></div>
 
             {/* Drag Handle */}
             <div {...attributes} {...listeners} className="text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing pl-2">
@@ -66,7 +66,7 @@ export function MealBlockCard({ meal, isSelected, onClick, onDelete }: MealBlock
             </div>
 
             {/* Icon */}
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${blockType.className}`}>
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${blockType.bg} ${blockType.color}`}>
                 <blockType.icon size={24} />
             </div>
 
