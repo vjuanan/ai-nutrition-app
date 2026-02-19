@@ -92,17 +92,17 @@ export function PaletteItem({ type, className, onAdd }: { type: (typeof MEAL_BLO
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
-                        // Also prevent default to avoid any other side effects
-                        e.preventDefault();
-                        console.log('BUTTON: Add Button Triggered', type.id);
-                        onAdd();
+                        console.log(`BUTTON CLICKED: ${type.id}`);
+                        try {
+                            onAdd();
+                            console.log(`BUTTON ACTION CALLED: ${type.id}`);
+                        } catch (err) {
+                            console.error('BUTTON ACTION ERROR', err);
+                        }
                     }}
-                    onPointerDown={(e) => {
-                        // Crucial: Stop propagation so dnd-kit doesn't start a drag
-                        e.stopPropagation();
-                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-black/5 dark:hover:bg-white/10 rounded-md text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-black/5 dark:hover:bg-white/10 rounded-md text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 z-50 relative pointer-events-auto"
                     title="Añadir al plan"
                 >
                     <Plus size={16} />
