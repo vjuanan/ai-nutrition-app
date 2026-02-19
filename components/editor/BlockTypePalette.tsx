@@ -108,20 +108,25 @@ export function BlockTypePalette({ onItemClick }: BlockTypePaletteProps) {
                     <div key={type.id} className="relative group">
                         <DraggableBlock type={type} />
 
-                        {/* Explicit Add Button - Outside of Draggable Context */}
-// Version: Decoupled Button Fix v1
+// Version: LOUD DEBUG BUTTON v2
                         <button
+                            id={`debug-add-btn-${type.id}`}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 e.preventDefault();
-                                console.log(`BUTTON (EXTERNAL) CLICKED: ${type.id}`);
-                                onItemClick?.(type.id);
+                                console.log(`[LOUD_DEBUG] BUTTON CLICKED: ${type.id}`);
+                                if (onItemClick) {
+                                    onItemClick(type.id);
+                                } else {
+                                    console.error('[LOUD_DEBUG] onItemClick is undefined');
+                                }
                             }}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 z-50 pointer-events-auto"
-                            title="Añadir al plan"
+                            className="absolute right-0 top-0 bottom-0 w-12 bg-red-500/50 hover:bg-red-500 z-[9999] flex items-center justify-center cursor-pointer border-l-2 border-red-600 pointer-events-auto"
+                            title={`DEBUG ADD ${type.id}`}
                             type="button"
+                            style={{ pointerEvents: 'auto', display: 'flex' }}
                         >
-                            <Plus size={18} />
+                            <span className="text-white font-bold text-xl">+</span>
                         </button>
                     </div>
                 ))}
