@@ -3,7 +3,7 @@ require('dotenv').config({ path: '.env.local' });
 
 const accessToken = process.env.SUPABASE_ACCESS_TOKEN;
 const projectRef = 'dfbxffnuwkcbnxfwyvcc';
-const siteUrl = 'https://aicoach.epnstore.com.ar';
+const siteUrl = 'https://ainutrition.epnstore.com.ar';
 
 if (!accessToken) {
     console.error('Missing SUPABASE_ACCESS_TOKEN in .env.local');
@@ -17,7 +17,7 @@ async function updateAuthConfig() {
 
     const payload = {
         site_url: siteUrl,
-        uri_allow_list: 'https://aicoach.epnstore.com.ar/**,https://aicoach.epnstore.com.ar/auth/callback',
+        uri_allow_list: 'https://ainutrition.epnstore.com.ar/**,https://ainutrition.epnstore.com.ar/auth/callback',
         mailer_autoconfirm: false,
         external_email_enabled: true
     };

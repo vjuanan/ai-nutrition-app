@@ -57,7 +57,7 @@ export default function SignUpPage() {
                 email,
                 password,
                 options: {
-                    emailRedirectTo: `https://aicoach.epnstore.com.ar/auth/callback`,
+                    emailRedirectTo: `https://ainutrition.epnstore.com.ar/auth/callback`,
                     data: {
                         full_name: fullName,
                         // role: 'athlete' // REMOVED: Default to NULL to force onboarding trigger

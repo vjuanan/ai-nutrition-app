@@ -10,7 +10,7 @@ interface InviteDialogProps {
 
 export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
     const [copied, setCopied] = useState(false);
-    const signupUrl = 'https://aicoach.epnstore.com.ar/auth/signup';
+    const signupUrl = 'https://ainutrition.epnstore.com.ar/auth/signup';
 
     // Reset copied state when dialog opens
     useEffect(() => {

@@ -10,8 +10,8 @@ import { chromium } from 'playwright';
         const email = 'vjuanan@gmail.com';
         const password = 'password123';
 
-        console.log(`Navigating to Login: https://aicoach.epnstore.com.ar/login`);
-        await page.goto('https://aicoach.epnstore.com.ar/login');
+        console.log(`Navigating to Login: https://ainutrition.epnstore.com.ar/login`);
+        await page.goto('https://ainutrition.epnstore.com.ar/login');
 
         // Login
         await page.fill('input[type="email"]', email);
@@ -22,7 +22,7 @@ import { chromium } from 'playwright';
         console.log('Logged in. Navigating to Programs...');
 
         // Go to Programs
-        await page.goto('https://aicoach.epnstore.com.ar/programs');
+        await page.goto('https://ainutrition.epnstore.com.ar/programs');
         await page.waitForTimeout(2000); // Wait for load
 
         // Check for existing program cards first

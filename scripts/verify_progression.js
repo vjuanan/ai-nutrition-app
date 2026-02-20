@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
     const page = await context.newPage();
 
     console.log('1. Navigating to login...');
-    await page.goto('https://aicoach.epnstore.com.ar/auth/signin');
+    await page.goto('https://ainutrition.epnstore.com.ar/auth/signin');
     await page.waitForLoadState('networkidle');
 
     console.log('2. Logging in...');
@@ -18,7 +18,7 @@ const { chromium } = require('playwright');
     await page.waitForTimeout(3000);
 
     console.log('3. Navigating to programs...');
-    await page.goto('https://aicoach.epnstore.com.ar/programs');
+    await page.goto('https://ainutrition.epnstore.com.ar/programs');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 

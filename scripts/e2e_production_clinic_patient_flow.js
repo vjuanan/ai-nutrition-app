@@ -162,7 +162,7 @@ async function login(page, baseUrl, email, password) {
 
 async function run() {
   const env = loadEnv(path.join(process.cwd(), '.env.local'));
-  const baseUrl = process.env.E2E_BASE_URL || 'https://aicoach.epnstore.com.ar';
+  const baseUrl = process.env.E2E_BASE_URL || 'https://ainutrition.epnstore.com.ar';
   const runId = slugNow();
   const outDir = path.join(process.cwd(), 'e2e-screenshots', `prod-e2e-${runId}`);
   fs.mkdirSync(outDir, { recursive: true });

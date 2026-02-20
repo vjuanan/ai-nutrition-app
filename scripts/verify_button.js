@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
     const page = await context.newPage();
 
     console.log('Navigating to production...');
-    await page.goto('https://aicoach.epnstore.com.ar/editor/9d43b09d-cfbb-4855-a742-a02ab5828f9f', { waitUntil: 'networkidle' });
+    await page.goto('https://ainutrition.epnstore.com.ar/editor/9d43b09d-cfbb-4855-a742-a02ab5828f9f', { waitUntil: 'networkidle' });
 
     // Wait for page to stabilize
     await page.waitForTimeout(3000);

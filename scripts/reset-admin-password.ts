@@ -106,7 +106,7 @@ async function resetAdminPassword() {
     console.log('\n🎉 Done! Login credentials:');
     console.log(`   Email: ${email}`);
     console.log(`   Password: ${newPassword}`);
-    console.log(`   URL: https://aicoach.epnstore.com.ar`);
+    console.log(`   URL: https://ainutrition.epnstore.com.ar`);
 }
 
 resetAdminPassword().catch(console.error);

@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
 
     try {
         console.log('Navigating to login...');
-        await page.goto('https://aicoach.epnstore.com.ar/login');
+        await page.goto('https://ainutrition.epnstore.com.ar/login');
 
         console.log('Filling credentials...');
         await page.fill('input[type="email"]', 'vjuanan@gmail.com');
@@ -17,14 +17,14 @@ const { chromium } = require('playwright');
 
         console.log('Waiting for dashboard...');
         try {
-            await page.waitForURL('https://aicoach.epnstore.com.ar/', { timeout: 15000 });
+            await page.waitForURL('https://ainutrition.epnstore.com.ar/', { timeout: 15000 });
         } catch (e) {
             console.log('URL did not change to root, checking if we are redirected elsewhere or already logged in.');
             console.log('Current URL:', page.url());
         }
 
         console.log('Navigating to /athletes...');
-        await page.goto('https://aicoach.epnstore.com.ar/athletes');
+        await page.goto('https://ainutrition.epnstore.com.ar/athletes');
 
         console.log('Waiting for table...');
         await page.waitForSelector('table', { state: 'visible', timeout: 30000 });
