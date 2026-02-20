@@ -71,7 +71,12 @@ export default function SignUpPage() {
             setSuccess(true);
 
         } catch (err: any) {
-            setError(err.message || 'Error al registrarse');
+            const rawMessage = err?.message || '';
+            if (/rate limit/i.test(rawMessage)) {
+                setError('Se alcanzó el límite temporal de registros. Espera unos minutos e inténtalo nuevamente.');
+            } else {
+                setError(rawMessage || 'Error al registrarse');
+            }
         } finally {
             setIsLoading(false);
         }
