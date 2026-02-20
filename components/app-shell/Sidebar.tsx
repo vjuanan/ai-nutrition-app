@@ -12,9 +12,9 @@ import {
     FileText,
     ChevronLeft,
     ChevronRight,
-    Briefcase,
     Shield,
     BookOpen,
+    UserCircle2,
 } from 'lucide-react';
 
 interface NavItem {
@@ -26,21 +26,22 @@ interface NavItem {
 // Unified nav items - no more context filtering
 const navItems: NavItem[] = [
     { label: 'Mi Panel', href: '/', icon: <LayoutDashboard size={20} /> },
-    { label: 'Pacientes', href: '/athletes', icon: <Users size={20} /> },
-    { label: 'Clínicas', href: '/gyms', icon: <Building2 size={20} /> },
+    { label: 'Pacientes', href: '/patients', icon: <Users size={20} /> },
+    { label: 'Clínicas', href: '/clinics', icon: <Building2 size={20} /> },
     { label: 'Alimentos', href: '/foods', icon: <Dumbbell size={20} /> }, // Was Exercises
     { label: 'Planes', href: '/meal-plans', icon: <FileText size={20} /> }, // Was Programs
-    { label: 'Platillas', href: '/templates', icon: <FileText size={20} /> }, // Assuming templates route based on screenshot icon
+    { label: 'Plantillas', href: '/templates', icon: <FileText size={20} /> }, // Assuming templates route based on screenshot icon
     { label: 'Conocimiento', href: '/knowledge', icon: <BookOpen size={20} /> },
+    { label: 'Perfil', href: '/settings', icon: <UserCircle2 size={20} /> },
     { label: 'Usuarios', href: '/admin/users', icon: <Shield size={20} /> },
 ];
 
 interface SidebarProps {
     /** Role passed from server - NO async loading, immediate render */
-    role?: 'admin' | 'coach' | 'athlete' | 'gym';
+    role?: 'admin' | 'nutritionist' | 'patient';
 }
 
-export function Sidebar({ role = 'coach' }: SidebarProps) {
+export function Sidebar({ role = 'nutritionist' }: SidebarProps) {
     const { isSidebarCollapsed, toggleSidebar } = useAppStore();
     const pathname = usePathname();
 
@@ -48,14 +49,14 @@ export function Sidebar({ role = 'coach' }: SidebarProps) {
     const filteredNavItems = navItems.filter(item => {
         if (role === 'admin') return true; // See all
 
-        if (role === 'coach') {
-            // Coach cannot see 'Gimnasios' OR admin sections
-            return item.href !== '/gyms' && !item.href.startsWith('/admin');
+        if (role === 'nutritionist') {
+            // Nutritionist can see everything except users admin area.
+            return !item.href.startsWith('/admin');
         }
 
-        if (role === 'athlete') {
-            // Athletes only see dashboard
-            return item.href === '/';
+        if (role === 'patient') {
+            // Patient can only navigate profile + assigned plans.
+            return ['/', '/meal-plans', '/settings'].includes(item.href);
         }
         return true; // Fallback: show item
     });

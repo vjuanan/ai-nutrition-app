@@ -19,10 +19,10 @@ export function CoachWarning({ hasCoach, isAthlete }: CoachWarningProps) {
                 <AlertTriangle className="text-yellow-500" size={20} />
                 <div>
                     <p className="text-sm font-medium text-yellow-500">
-                        No tienes un Coach asignado
+                        No tienes una clínica asignada
                     </p>
                     <p className="text-xs text-yellow-500/80">
-                        Algunas funciones pueden estar limitadas hasta que un entrenador te asigne a su equipo.
+                        Algunas funciones pueden estar limitadas hasta que un admin te asigne a una clínica.
                     </p>
                 </div>
             </div>

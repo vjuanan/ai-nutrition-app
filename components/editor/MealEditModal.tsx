@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useDietStore, DraftMeal } from '@/lib/store';
-import { FoodAutocomplete } from './FoodAutocomplete';
-import { Trash2, X, Plus, Clock, ChevronDown, Check, Flame } from 'lucide-react';
-import { toast } from 'sonner';
+import { SmartFoodInput } from './SmartFoodInput';
+import { Trash2, X, Clock, Check, Flame } from 'lucide-react';
 
 interface MealEditModalProps {
     mealId: string;
@@ -16,6 +15,7 @@ interface MealEditModalProps {
 export function MealEditModal({ mealId, isOpen, onClose }: MealEditModalProps) {
     const { days, updateMeal, addItemToMeal, removeItemFromMeal, updateItemInMeal, deleteMeal } = useDietStore();
     const [mounted, setMounted] = useState(false);
+    const [foodSearch, setFoodSearch] = useState('');
 
     useEffect(() => {
         setMounted(true);
@@ -24,14 +24,11 @@ export function MealEditModal({ mealId, isOpen, onClose }: MealEditModalProps) {
 
     // Find the meal
     let meal: DraftMeal | null = null;
-    let dayId: string | null = null;
-
     // Efficient lookup? Not really, but array is small
     for (const day of days) {
         const found = day.meals.find(m => m.id === mealId);
         if (found) {
             meal = found;
-            dayId = day.id;
             break;
         }
     }
@@ -100,12 +97,13 @@ export function MealEditModal({ mealId, isOpen, onClose }: MealEditModalProps) {
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">
                             Añadir Alimento
                         </label>
-                        <FoodAutocomplete
-                            value=""
-                            onChange={() => { }}
+                        <SmartFoodInput
+                            value={foodSearch}
+                            onChange={setFoodSearch}
                             onSelect={(food) => {
                                 const defaultQty = food.serving_size || 100;
                                 addItemToMeal(mealId, food, defaultQty, food.unit || 'g');
+                                setFoodSearch('');
                             }}
                             placeholder="Buscar alimento (ej. Pollo, Arroz, Huevo)..."
                             className="w-full p-4 pl-12 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-cv-accent focus:border-transparent transition-all text-base"

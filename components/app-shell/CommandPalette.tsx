@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface SearchResult {
     id: string;
-    type: 'athlete' | 'gym' | 'program' | 'template';
+    type: 'patient' | 'clinic' | 'program' | 'template';
     title: string;
     subtitle?: string;
     href: string;
@@ -25,23 +25,23 @@ interface SearchResult {
 
 // Mock data - replace with actual Supabase queries
 const mockResults: SearchResult[] = [
-    { id: '1', type: 'athlete', title: 'John Doe', subtitle: 'Active program: Strength Block A', href: '/athletes/1' },
-    { id: '2', type: 'athlete', title: 'Jane Smith', subtitle: 'Last session: 2 days ago', href: '/athletes/2' },
-    { id: '3', type: 'gym', title: 'CrossFit Downtown', subtitle: '45 active members', href: '/gyms/1' },
+    { id: '1', type: 'patient', title: 'John Doe', subtitle: 'Active program: Strength Block A', href: '/patients/1' },
+    { id: '2', type: 'patient', title: 'Jane Smith', subtitle: 'Last session: 2 days ago', href: '/patients/2' },
+    { id: '3', type: 'clinic', title: 'CrossFit Downtown', subtitle: '45 active members', href: '/clinics/1' },
     { id: '4', type: 'program', title: 'Hypertrophy Block A', subtitle: 'Week 3 of 4', href: '/editor/1' },
     { id: '5', type: 'template', title: 'Competition Prep Template', subtitle: '12 weeks', href: '/templates/1' },
 ];
 
 const typeIcons = {
-    athlete: <Users size={16} />,
-    gym: <Building2 size={16} />,
+    patient: <Users size={16} />,
+    clinic: <Building2 size={16} />,
     program: <Dumbbell size={16} />,
     template: <FileText size={16} />,
 };
 
 const typeColors = {
-    athlete: 'text-blue-400',
-    gym: 'text-purple-400',
+    patient: 'text-blue-400',
+    clinic: 'text-purple-400',
     program: 'text-cv-accent',
     template: 'text-green-400',
 };

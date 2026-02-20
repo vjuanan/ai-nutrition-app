@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "preflight": "bash ./scripts/preflight.sh",
+    "seed:protein-plan": "node ./scripts/create_protein_plan_80kg.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",

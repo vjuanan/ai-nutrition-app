@@ -11,8 +11,8 @@ interface ProgramAssignmentModalProps {
     onClose: () => void;
     programId: string;
     currentClientId: string | null;
-    initialClientType?: 'athlete' | 'gym' | null;
-    onAssignSuccess: (clientId: string | null, clientName: string | null, clientType: 'athlete' | 'gym' | null) => void;
+    initialClientType?: 'patient' | 'clinic' | null;
+    onAssignSuccess: (clientId: string | null, clientName: string | null, clientType: 'patient' | 'clinic' | null) => void;
 }
 
 export function ProgramAssignmentModal({
@@ -23,7 +23,7 @@ export function ProgramAssignmentModal({
     initialClientType,
     onAssignSuccess
 }: ProgramAssignmentModalProps) {
-    const [activeTab, setActiveTab] = useState<'athlete' | 'gym'>('athlete');
+    const [activeTab, setActiveTab] = useState<'patient' | 'clinic'>('patient');
     const [clients, setClients] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -97,27 +97,26 @@ export function ProgramAssignmentModal({
                 {/* Tabs */}
                 <div className="flex items-center gap-4 mb-4 border-b border-white/10 pb-4">
                     <button
-                        onClick={() => setActiveTab('athlete')}
-                        className={`pb-2 px-1 text-sm font-medium transition-colors relative ${activeTab === 'athlete'
+                        onClick={() => setActiveTab('patient')}
+                        className={`pb-2 px-1 text-sm font-medium transition-colors relative ${activeTab === 'patient'
                             ? 'text-cv-accent'
                             : 'text-gray-400 hover:text-white'
                             }`}
                     >
-                        Atletas
-                        {activeTab === 'athlete' && (
+                        Pacientes
+                        {activeTab === 'patient' && (
                             <span className="absolute bottom-[-17px] left-0 right-0 h-0.5 bg-cv-accent" />
                         )}
                     </button>
-                    {/* Hide Gym for Nutrition? Or keep it? Keeping it but it's optional */}
                     <button
-                        onClick={() => setActiveTab('gym')}
-                        className={`pb-2 px-1 text-sm font-medium transition-colors relative ${activeTab === 'gym'
+                        onClick={() => setActiveTab('clinic')}
+                        className={`pb-2 px-1 text-sm font-medium transition-colors relative ${activeTab === 'clinic'
                             ? 'text-cv-accent'
                             : 'text-gray-400 hover:text-white'
                             }`}
                     >
-                        Gimnasios
-                        {activeTab === 'gym' && (
+                        Clínicas
+                        {activeTab === 'clinic' && (
                             <span className="absolute bottom-[-17px] left-0 right-0 h-0.5 bg-cv-accent" />
                         )}
                     </button>
@@ -128,7 +127,7 @@ export function ProgramAssignmentModal({
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
                     <input
                         type="text"
-                        placeholder={`Buscar ${activeTab === 'athlete' ? 'atleta' : 'gimnasio'}...`}
+                        placeholder={`Buscar ${activeTab === 'patient' ? 'paciente' : 'clínica'}...`}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cv-accent/50"
@@ -155,9 +154,9 @@ export function ProgramAssignmentModal({
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeTab === 'athlete' ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeTab === 'patient' ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'
                                             }`}>
-                                            {activeTab === 'athlete' ? <User size={18} /> : <Dumbbell size={18} />}
+                                            {activeTab === 'patient' ? <User size={18} /> : <Dumbbell size={18} />}
                                         </div>
                                         <div className="text-left">
                                             <p className={`font-medium ${isSelected ? 'text-cv-accent' : 'text-white'}`}>

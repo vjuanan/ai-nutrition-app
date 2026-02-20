@@ -11,7 +11,7 @@ import {
     UtensilsCrossed, ShieldAlert, Leaf, GraduationCap,
     MapPin, Globe, Building2, Clock, Instagram, User
 } from 'lucide-react';
-import { refreshUserRoleReference } from '../auth/actions';
+import { refreshUserRoleReference, syncOnboardingClient } from '../auth/actions';
 
 // --- Shared UI Helpers ---
 
@@ -230,6 +230,22 @@ export default function OnboardingPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user.id);
+
+                if (role === 'nutritionist') {
+                    await syncOnboardingClient('nutritionist', {
+                        clinicName: nutritionistData.clinic_name,
+                        fullName: nutritionistData.full_name || user.user_metadata?.full_name,
+                        email: user.email
+                    });
+                }
+
+                if (role === 'patient') {
+                    await syncOnboardingClient('patient', {
+                        fullName: user.user_metadata?.full_name,
+                        email: user.email
+                    });
+                }
+
                 await refreshUserRoleReference();
             }
             router.push(redirectTo);

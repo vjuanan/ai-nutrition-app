@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 interface DashboardShellProps {
     children: React.ReactNode;
     /** Role from server - renders sidebar immediately without flash */
-    role: 'admin' | 'coach' | 'athlete';
+    role: 'admin' | 'nutritionist' | 'patient';
 }
 
 export function DashboardShell({ children, role }: DashboardShellProps) {

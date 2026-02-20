@@ -13,6 +13,29 @@ import type {
 // Helper functions for temp IDs
 const generateTempId = () => `temp_${Math.random().toString(36).substr(2, 9)}`;
 
+const calculateMealTotals = (meal: DraftMeal) => {
+    const calories = meal.items.reduce((sum, item) => (
+        sum + ((item.food?.calories || 0) * item.quantity / (item.food?.serving_size || 100))
+    ), 0);
+    const protein = meal.items.reduce((sum, item) => (
+        sum + ((item.food?.protein || 0) * item.quantity / (item.food?.serving_size || 100))
+    ), 0);
+
+    return { calories, protein };
+};
+
+const calculateDayTotals = (day: DraftDay | undefined) => {
+    if (!day) return { calories: 0, protein: 0 };
+
+    return day.meals.reduce((acc, meal) => {
+        const mealTotals = calculateMealTotals(meal);
+        return {
+            calories: acc.calories + mealTotals.calories,
+            protein: acc.protein + mealTotals.protein,
+        };
+    }, { calories: 0, protein: 0 });
+};
+
 // ============================================
 // Diet Ops Store - Canvas State Management
 // ============================================
@@ -34,6 +57,7 @@ export interface DraftDay {
     plan_id: string;
     day_of_week: number | null; // 0 (Sun) - 6 (Sat)
     name: string | null;
+    training_slot?: 'rest' | 'morning' | 'afternoon' | 'night' | null;
     target_calories?: number;
     target_protein?: number;
     target_carbs?: number;
@@ -113,6 +137,12 @@ interface DietStoreState {
     removeItemFromMeal: (mealId: string, itemId: string) => void; // itemId might be index if no ID
     updateItemInMeal: (mealId: string, index: number, updates: Partial<MealItem>) => void;
 
+    // Derived selectors
+    totalCaloriesDay: (dayId: string) => number;
+    totalProteinDay: (dayId: string) => number;
+    calorieProgressPct: (dayId: string) => number;
+    proteinProgressPct: (dayId: string) => number;
+
     // Utility
     updatePlanClient: (clientName: string | null) => void;
     markAsClean: () => void;
@@ -152,7 +182,13 @@ export const useDietStore = create<DietStoreState>()(
                 });
             },
 
-            loadDays: (days) => set({ days, hasUnsavedChanges: false }),
+            loadDays: (days) => set({
+                days: days.map((day) => ({
+                    ...day,
+                    training_slot: day.training_slot ?? 'morning',
+                })),
+                hasUnsavedChanges: false
+            }),
 
             resetStore: () => set({
                 planId: null,
@@ -408,6 +444,34 @@ export const useDietStore = create<DietStoreState>()(
                     })
                 }));
                 set({ days: updatedDays, hasUnsavedChanges: true });
+            },
+
+            totalCaloriesDay: (dayId) => {
+                const { days } = get();
+                const day = days.find(d => d.id === dayId);
+                return calculateDayTotals(day).calories;
+            },
+
+            totalProteinDay: (dayId) => {
+                const { days } = get();
+                const day = days.find(d => d.id === dayId);
+                return calculateDayTotals(day).protein;
+            },
+
+            calorieProgressPct: (dayId) => {
+                const { days } = get();
+                const day = days.find(d => d.id === dayId);
+                if (!day?.target_calories || day.target_calories <= 0) return 0;
+                const totals = calculateDayTotals(day);
+                return (totals.calories / day.target_calories) * 100;
+            },
+
+            proteinProgressPct: (dayId) => {
+                const { days } = get();
+                const day = days.find(d => d.id === dayId);
+                if (!day?.target_protein || day.target_protein <= 0) return 0;
+                const totals = calculateDayTotals(day);
+                return (totals.protein / day.target_protein) * 100;
             },
 
             markAsClean: () => set({ hasUnsavedChanges: false }),

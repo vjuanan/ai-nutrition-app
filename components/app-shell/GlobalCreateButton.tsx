@@ -44,13 +44,13 @@ export function GlobalCreateButton() {
         {
             label: 'Nuevo Paciente', // Updated label for Nutrition
             icon: <Users size={16} />,
-            href: '/athletes/new',
+            href: '/patients/new',
             color: 'text-blue-400'
         },
         {
             label: 'Nueva Clínica', // Updated label for Nutrition
             icon: <Building2 size={16} />,
-            href: '/gyms/new',
+            href: '/clinics/new',
             color: 'text-purple-400'
         },
         {
@@ -124,4 +124,3 @@ export function GlobalCreateButton() {
         </>
     );
 }
-

@@ -4,45 +4,47 @@ import { createServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
 /**
- * Fetches all coaches for assignment dropdowns
+ * Legacy compatibility: fetch clinic list for assignment dropdowns.
  */
 export async function getCoaches() {
     const supabase = createServerClient();
 
-    // We need to fetch from the coaches table
-    // Depending on RLS, we might need admin access, but typically admins can see all coaches
-    const { data: coaches, error } = await supabase
-        .from('coaches')
-        .select('id, full_name, business_name')
-        .order('full_name');
+    const { data: clinics, error } = await supabase
+        .from('clients')
+        .select('id, name, user_id')
+        .eq('type', 'clinic')
+        .order('name');
 
     if (error) {
-        console.error('Error fetching coaches:', error);
+        console.error('Error fetching clinics:', error);
         return [];
     }
 
-    return coaches || [];
+    return (clinics || []).map((clinic) => ({
+        id: clinic.id,
+        full_name: clinic.name,
+        business_name: clinic.name,
+        user_id: clinic.user_id
+    }));
 }
 
 /**
- * Assigns a coach to a client
+ * Legacy compatibility: assigns a clinic to a patient client row
  */
 export async function assignCoach(clientId: string, coachId: string) {
     const supabase = createServerClient();
-
-    // Verify permission (Admin only ideally, but we'll let RLS handle it or assume server action implies trust for now)
-
     const { error } = await supabase
         .from('clients')
-        .update({ coach_id: coachId })
+        .update({ clinic_id: coachId })
         .eq('id', clientId);
 
     if (error) {
-        console.error('Error assigning coach:', error);
-        throw new Error('No se pudo asignar el entrenador.');
+        console.error('Error assigning clinic:', error);
+        throw new Error('No se pudo asignar la clínica.');
     }
 
-    revalidatePath(`/athletes/${clientId}`);
-    revalidatePath('/athletes');
+    revalidatePath(`/patients/${clientId}`);
+    revalidatePath('/patients');
+    revalidatePath('/clinics');
     return { success: true };
 }

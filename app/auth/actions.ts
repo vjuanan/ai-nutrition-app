@@ -3,6 +3,7 @@
 import { createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { cookies } from 'next/headers';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 export async function refreshUserRoleReference() {
     const supabase = createServerClient();
@@ -136,4 +137,96 @@ export async function checkEmailRegistered(email: string) {
 
     console.log('[checkEmailRegistered] Email exists:', !!data);
     return { exists: !!data };
+}
+
+export async function syncOnboardingClient(
+    role: 'patient' | 'nutritionist',
+    data: {
+        clinicName?: string;
+        clinicId?: string | null;
+        fullName?: string;
+        email?: string | null;
+    }
+) {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const adminSupabase = process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+        )
+        : supabase;
+
+    const normalizedType = role === 'patient' ? 'patient' : 'clinic';
+    const basePayload: Record<string, any> = {
+        type: normalizedType,
+        name: role === 'nutritionist'
+            ? (data.clinicName?.trim() || data.fullName || user.user_metadata?.full_name || user.email || 'Clínica')
+            : (data.fullName || user.user_metadata?.full_name || user.email || 'Paciente'),
+        email: data.email || user.email || null,
+        user_id: user.id,
+    };
+
+    if (role === 'patient' && data.clinicId) {
+        basePayload.clinic_id = data.clinicId;
+    }
+
+    const { data: existingClient } = await adminSupabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+    let clientError: any = null;
+    if (existingClient?.id) {
+        ({ error: clientError } = await adminSupabase
+            .from('clients')
+            .update(basePayload)
+            .eq('id', existingClient.id));
+    } else {
+        ({ error: clientError } = await adminSupabase
+            .from('clients')
+            .insert(basePayload));
+    }
+
+    if (clientError && clientError.message?.toLowerCase().includes('invalid input value')) {
+        const legacyPayload = {
+            ...basePayload,
+            type: normalizedType === 'patient' ? 'athlete' : 'gym'
+        };
+        if (existingClient?.id) {
+            ({ error: clientError } = await adminSupabase
+                .from('clients')
+                .update(legacyPayload)
+                .eq('id', existingClient.id));
+        } else {
+            ({ error: clientError } = await adminSupabase
+                .from('clients')
+                .insert(legacyPayload));
+        }
+    }
+
+    // Fallback for environments that still do not have clinic_id.
+    if (clientError && clientError.message?.includes('clinic_id')) {
+        const { clinic_id, ...legacyPayload } = basePayload;
+        if (existingClient?.id) {
+            ({ error: clientError } = await adminSupabase
+                .from('clients')
+                .update(legacyPayload)
+                .eq('id', existingClient.id));
+        } else {
+            ({ error: clientError } = await adminSupabase
+                .from('clients')
+                .insert(legacyPayload));
+        }
+    }
+
+    if (clientError) {
+        console.error('syncOnboardingClient failed:', clientError);
+        return { error: clientError.message };
+    }
+
+    return { success: true };
 }

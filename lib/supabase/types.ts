@@ -31,7 +31,7 @@ export interface Profile {
     id: string;
     email: string | null;
     full_name: string | null;
-    role: 'coach' | 'athlete' | 'admin' | null;
+    role: 'admin' | 'nutritionist' | 'patient' | 'coach' | 'athlete' | 'gym' | null;
     // Nutrition specific
     tdee?: number | null;
     dietary_goal?: 'cut' | 'bulk' | 'maintenance' | null;
@@ -49,20 +49,15 @@ export interface Profile {
 export interface Client {
     id: string;
     user_id: string | null;
-    coach_id: string | null;
+    clinic_id?: string | null;
     email: string;
-    full_name: string;
+    full_name?: string;
+    name: string;
     status: 'active' | 'inactive' | 'pending';
-    type: 'athlete' | 'gym';
+    type: 'patient' | 'clinic' | 'athlete' | 'gym';
 
-    // Gym specific fields
-    gym_type?: string;
-    location?: string;
-    member_count?: string;
-    equipment?: string;
-    operating_hours?: string;
-    website?: string;
-    phone?: string;
+    // Optional metadata
+    notes?: string | null;
     details?: any;
 
     created_at: string;
@@ -88,6 +83,7 @@ export interface PlanDay {
     plan_id: string;
     day_of_week: number | null; // 0-6
     name: string | null; // "Monday"
+    training_slot?: 'rest' | 'morning' | 'afternoon' | 'night' | null;
     target_calories?: number;
     target_protein?: number;
     target_carbs?: number;
@@ -129,13 +125,13 @@ export interface Food {
     id: string;
     name: string;
     brand: string | null;
+    category?: string | null;
     calories: number;
     protein: number;
     carbs: number;
     fats: number;
     unit: string; // 'g', 'ml', 'unit'
     serving_size: number;
-    category?: string; // Added to match UI
     created_at: string;
 }
 
@@ -216,5 +212,3 @@ export interface Database {
         };
     };
 }
-
-

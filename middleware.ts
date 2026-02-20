@@ -21,6 +21,16 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
+    // Legacy route compatibility
+    if (path === '/athletes' || path.startsWith('/athletes/')) {
+        const nextPath = path.replace('/athletes', '/patients');
+        return NextResponse.redirect(new URL(nextPath, request.url));
+    }
+    if (path === '/gyms' || path.startsWith('/gyms/')) {
+        const nextPath = path.replace('/gyms', '/clinics');
+        return NextResponse.redirect(new URL(nextPath, request.url));
+    }
+
     // Early bail if Supabase env vars are not configured
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -106,7 +116,7 @@ export async function middleware(request: NextRequest) {
 
         // 4. RBAC & Onboarding Check (Only for authenticated users accessing app routes)
         if (user && !isAuthPage) {
-            let role = null;
+            let role: string | null = null;
             let onboardingCompleted = false;
 
             // OPTIMIZATION: Check for cached role in cookies
@@ -176,6 +186,12 @@ export async function middleware(request: NextRequest) {
                 return response;
             }
 
+            const normalizedRole = role === 'admin'
+                ? 'admin'
+                : role === 'patient' || role === 'athlete'
+                    ? 'patient'
+                    : 'nutritionist';
+
             // SCENARIO A: Not Completed Onboarding -> Force Onboarding
             // Even if they have a role (e.g. default athlete), they must finish onboarding.
             if (!onboardingCompleted) {
@@ -192,29 +208,27 @@ export async function middleware(request: NextRequest) {
 
             // SCENARIO C: Admin (Superuser)
             // Admins have access to everything. We don't block them.
-            if (role === 'admin') {
+            if (normalizedRole === 'admin') {
                 return response;
             }
 
-            // SCENARIO D: Coach / Nutritionist Checks
-            if (role === 'coach' || role === 'nutritionist') {
-                // Block access to Admin territory
-                // EXCEPTION: Allow access to /admin/users for now as per user request to fix "Usuarios" page
-                // or if it's the specific super admin email
-                if (user.email === 'vjuanan@gmail.com') {
-                    return response;
-                }
-
-                if (path.startsWith('/admin')) {
+            // SCENARIO D: Nutritionist checks
+            if (normalizedRole === 'nutritionist') {
+                if (path.startsWith('/admin/users')) {
                     return NextResponse.redirect(new URL('/', request.url));
                 }
             }
 
-            // SCENARIO E: Athlete / Patient Checks
-            if (role === 'athlete' || role === 'patient') {
-                // Patients/Athletes: block admin/management routes
-                if (path.startsWith('/admin') || path.startsWith('/athletes') || path.startsWith('/gyms')) {
-                    return NextResponse.redirect(new URL('/', request.url));
+            // SCENARIO E: Patient checks
+            if (normalizedRole === 'patient') {
+                const canAccess =
+                    path === '/' ||
+                    path.startsWith('/settings') ||
+                    path.startsWith('/meal-plans') ||
+                    path.startsWith('/editor/');
+
+                if (!canAccess) {
+                    return NextResponse.redirect(new URL('/meal-plans', request.url));
                 }
             }
         }

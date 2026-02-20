@@ -215,7 +215,7 @@ export function SettingsForm({ user, initialProfile }: SettingsFormProps) {
                     </div>
 
                     {/* Athlete Specific Fields */}
-                    {profile.role === 'athlete' && (
+                    {(profile.role === 'athlete' || profile.role === 'patient') && (
                         <div className="h-fit">
                             <ProfileDetailsEditor
                                 athleteId={user.id}

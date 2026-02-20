@@ -84,7 +84,7 @@ export default function DashboardPage() {
                 {/* Action Cards */}
                 <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                     {/* View Patients Card */}
-                    <Link href="/athletes" className="group">
+                    <Link href="/patients" className="group">
                         <div className="h-full p-8 rounded-2xl bg-cv-bg-secondary/50 backdrop-blur-xl border border-cv-border hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-1 flex flex-col items-center text-center gap-4">
                             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400/10 to-emerald-600/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                                 <Users size={32} className="text-emerald-500" />

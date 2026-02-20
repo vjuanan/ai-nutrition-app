@@ -2,7 +2,7 @@
 'use client';
 
 import { Topbar } from '@/components/app-shell/Topbar';
-import { getProfiles, updateUserRole, resetUserPassword, createUser, deleteUser } from '@/lib/actions';
+import { getProfiles, updateUserRole, resetUserPassword, createUser, deleteUser, getClients } from '@/lib/actions';
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -25,13 +25,15 @@ interface Profile {
     id: string;
     email: string;
     full_name: string;
-    role: 'coach' | 'athlete' | 'admin' | null;
+    role: 'nutritionist' | 'patient' | 'admin' | null;
     created_at: string;
     updated_at: string;
 }
 
 export default function AdminUsersPage() {
     const [profiles, setProfiles] = useState<Profile[]>([]);
+    const [clinics, setClinics] = useState<Array<{ id: string; name: string }>>([]);
+    const [patientClinicByUserId, setPatientClinicByUserId] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(true);
     const searchParams = useSearchParams();
     const searchTerm = searchParams.get('q') || '';
@@ -49,7 +51,8 @@ export default function AdminUsersPage() {
         email: '',
         fullName: '',
         password: '',
-        role: 'athlete' as 'coach' | 'athlete' | 'admin'
+        role: 'patient' as 'nutritionist' | 'patient' | 'admin',
+        clinicId: '' as string
     });
 
     useEffect(() => {
@@ -58,8 +61,26 @@ export default function AdminUsersPage() {
 
     async function loadProfiles() {
         try {
-            const data = await getProfiles();
+            const [data, clinicRows, patientRows] = await Promise.all([
+                getProfiles(),
+                getClients('clinic'),
+                getClients('patient')
+            ]);
             setProfiles(data as Profile[]);
+            const clinicList = (clinicRows || []).map((c: any) => ({ id: c.id, name: c.name }));
+            setClinics(clinicList);
+            const clinicById = Object.fromEntries(clinicList.map((c) => [c.id, c.name]));
+
+            const clinicByUser: Record<string, string> = {};
+            for (const patient of (patientRows || []) as any[]) {
+                if (!patient.user_id) continue;
+                if (patient.clinic_id && clinicById[patient.clinic_id]) {
+                    clinicByUser[patient.user_id] = clinicById[patient.clinic_id];
+                } else {
+                    clinicByUser[patient.user_id] = 'Sin asignar';
+                }
+            }
+            setPatientClinicByUserId(clinicByUser);
         } catch (err) {
             console.error(err);
             setMessage({ text: 'Error al cargar usuarios', type: 'error' });
@@ -68,7 +89,7 @@ export default function AdminUsersPage() {
         }
     }
 
-    async function handleRoleUpdate(userId: string, newRole: 'coach' | 'athlete' | 'admin') {
+    async function handleRoleUpdate(userId: string, newRole: 'nutritionist' | 'patient' | 'admin') {
         if (!confirm(`¿Estás seguro de cambiar el rol a ${newRole}?`)) return;
 
         setUpdatingId(userId);
@@ -181,13 +202,14 @@ export default function AdminUsersPage() {
                 email: newUser.email,
                 password: newUser.password || undefined,
                 fullName: newUser.fullName,
-                role: newUser.role
+                role: newUser.role,
+                clinicId: newUser.role === 'patient' ? (newUser.clinicId || null) : null
             });
 
             if (res.success) {
                 setMessage({ text: res.message || 'Usuario creado', type: 'success' });
                 setIsCreateOpen(false);
-                setNewUser({ email: '', fullName: '', password: '', role: 'athlete' }); // Reset form
+                setNewUser({ email: '', fullName: '', password: '', role: 'patient', clinicId: '' }); // Reset form
                 loadProfiles();
             } else {
                 setMessage({ text: 'Error desconocido', type: 'error' });
@@ -261,6 +283,7 @@ export default function AdminUsersPage() {
                                         <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Usuario</th>
                                         <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Email</th>
                                         <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Rol Actual</th>
+                                        <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold">Clínica</th>
                                         <th className="p-4 text-xs uppercase tracking-wider text-cv-text-tertiary font-semibold text-right">Acciones</th>
                                     </tr>
                                 </thead>
@@ -294,18 +317,21 @@ export default function AdminUsersPage() {
                                                         value={user.role || ''}
                                                         onChange={(e) => handleRoleUpdate(user.id, e.target.value as any)}
                                                         className={`bg-transparent text-sm font-medium border-none focus:ring-0 cursor-pointer py-1 px-2 rounded ${user.role === 'admin' ? 'text-purple-400 bg-purple-500/10' :
-                                                            user.role === 'coach' ? 'text-blue-400 bg-blue-500/10' :
-                                                                user.role === 'athlete' ? 'text-green-400 bg-green-500/10' :
+                                                            user.role === 'nutritionist' ? 'text-blue-400 bg-blue-500/10' :
+                                                                user.role === 'patient' ? 'text-green-400 bg-green-500/10' :
                                                                     'text-yellow-400 bg-yellow-500/10'
                                                             }`}
                                                         disabled={updatingId === user.id}
                                                     >
                                                         <option value="" className="bg-cv-bg-primary">Sin Rol</option>
-                                                        <option value="athlete" className="bg-cv-bg-primary">Atleta</option>
-                                                        <option value="coach" className="bg-cv-bg-primary">Entrenador</option>
+                                                        <option value="patient" className="bg-cv-bg-primary">Paciente</option>
+                                                        <option value="nutritionist" className="bg-cv-bg-primary">Clínica</option>
                                                         <option value="admin" className="bg-cv-bg-primary">Administrador</option>
                                                     </select>
                                                 </div>
+                                            </td>
+                                            <td className="p-4 text-cv-text-secondary text-sm">
+                                                {user.role === 'patient' ? (patientClinicByUserId[user.id] || 'Sin asignar') : '-'}
                                             </td>
                                             <td className="p-4 text-right">
                                                 <button
@@ -395,13 +421,31 @@ export default function AdminUsersPage() {
                                             value={newUser.role}
                                             onChange={e => setNewUser({ ...newUser, role: e.target.value as any })}
                                         >
-                                            <option value="athlete">Atleta</option>
-                                            <option value="coach">Entrenador</option>
+                                            <option value="patient">Paciente</option>
+                                            <option value="nutritionist">Clínica</option>
                                             <option value="admin">Administrador</option>
                                         </select>
                                         <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-cv-text-tertiary pointer-events-none" size={16} />
                                     </div>
                                 </div>
+                                {newUser.role === 'patient' && (
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-medium text-cv-text-secondary">Clínica asignada</label>
+                                        <div className="relative">
+                                            <select
+                                                className="w-full p-2 rounded-lg bg-cv-bg-tertiary border border-cv-border-subtle text-cv-text-primary focus:outline-none focus:border-cv-accent appearance-none"
+                                                value={newUser.clinicId}
+                                                onChange={e => setNewUser({ ...newUser, clinicId: e.target.value })}
+                                            >
+                                                <option value="">Sin asignar</option>
+                                                {clinics.map((clinic) => (
+                                                    <option key={clinic.id} value={clinic.id}>{clinic.name}</option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-cv-text-tertiary pointer-events-none" size={16} />
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="pt-4 flex gap-3">
                                     <button
                                         type="button"

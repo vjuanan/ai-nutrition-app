@@ -39,15 +39,20 @@ export async function GET(request: Request) {
 
             const role = profile?.role;
             const onboardingCompleted = profile?.onboarding_completed ?? false;
+            const normalizedRole = role === 'admin'
+                ? 'admin'
+                : role === 'athlete' || role === 'patient'
+                    ? 'patient'
+                    : 'nutritionist';
 
             if (!onboardingCompleted) {
                 next = '/onboarding';
-            } else if (role === 'athlete') {
-                next = '/athlete/dashboard';
-            } else if (role === 'gym') {
-                next = '/'; // Gyms go to main dashboard
+            } else if (normalizedRole === 'patient') {
+                next = '/meal-plans';
+            } else if (normalizedRole === 'nutritionist') {
+                next = '/';
             }
-            // Coaches and Admins go to default '/'
+            // Admin remains on default '/'
 
             return NextResponse.redirect(`${origin}${next}`);
         }
@@ -56,4 +61,3 @@ export async function GET(request: Request) {
     // return the user to an error page with instructions
     return NextResponse.redirect(`${origin}/login?error=auth-code-error`);
 }
-

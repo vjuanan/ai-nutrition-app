@@ -34,13 +34,13 @@ interface PlanType {
     status?: string;
     created_at: string;
     updated_at: string;
-    client: { id: string; name: string; type: 'athlete' | 'gym' } | null;
+    client: { id: string; name: string; type: 'patient' | 'clinic' } | null;
 }
 
 interface Client {
     id: string;
     name: string;
-    type: 'athlete' | 'gym';
+    type: 'patient' | 'clinic';
 }
 
 // Paleta de gradientes vibrantes para las cards (Nutrition style - maybe fresher colors)
@@ -193,7 +193,7 @@ export default function MealPlansPage() {
         setProgramToAssign(program);
     }
 
-    async function handleAssignmentSuccess(clientId: string | null, clientName: string | null, clientType: 'athlete' | 'gym' | null) {
+    async function handleAssignmentSuccess(clientId: string | null, clientName: string | null, clientType: 'patient' | 'clinic' | null) {
         // Optimistic update: immediately update local state
         if (programToAssign) {
             setPrograms(prev => prev.map(p => {
@@ -203,7 +203,7 @@ export default function MealPlansPage() {
                         client: clientId ? {
                             id: clientId,
                             name: clientName || 'Asignado',
-                            type: clientType || 'athlete'
+                            type: clientType || 'patient'
                         } : null
                     };
                 }

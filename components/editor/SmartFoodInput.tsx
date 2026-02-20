@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { searchFoods } from '@/lib/actions';
 import { useFoodCache } from '@/hooks/useFoodCache';
-import { Search, Loader2, Plus, AlertCircle } from 'lucide-react';
+import { Search, Loader2, Plus } from 'lucide-react';
 import { FoodCreationModal } from './FoodCreationModal';
 
 interface SmartFoodInputProps {
@@ -37,7 +36,7 @@ export function SmartFoodInput({
     const wrapperRef = useRef<HTMLDivElement>(null);
 
     // Use global cache hook
-    const { searchLocal, isLoading: isCacheLoading } = useFoodCache();
+    const { searchLocal } = useFoodCache();
 
     // Debounce Search (now local)
     useEffect(() => {
@@ -79,15 +78,15 @@ export function SmartFoodInput({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleSelect = (exerciseName: string) => {
-        setQuery(exerciseName);
-        onChange(exerciseName);
+    const handleSelect = (foodName: string) => {
+        setQuery(foodName);
+        onChange(foodName);
         setIsOpen(false);
 
-        // Find full exercise object if possible
-        const fullExercise = results.find(r => r.name === exerciseName) || { name: exerciseName };
+        // Find full food object if possible
+        const fullFood = results.find(r => r.name === foodName) || { name: foodName };
         if (onSelect) {
-            onSelect(fullExercise);
+            onSelect(fullFood);
         }
     };
 
@@ -102,7 +101,7 @@ export function SmartFoodInput({
         }
     }
 
-    // Check if query exactly matches a known exercise result (case insensitive)
+    // Check if query exactly matches a known food result (case insensitive)
     const isExactMatch = results.some(r => r.name.toLowerCase() === query.trim().toLowerCase());
 
     return (
@@ -115,12 +114,6 @@ export function SmartFoodInput({
                     onChange={(e) => {
                         setQuery(e.target.value);
                         setIsOpen(true);
-                        // We do NOT call onChange here for free text if we want to enforce strictness?
-                        // The prompt says: "NO se puedan agregar ejercicios que no esten en la biblioteca"
-                        // But usually users want to see what they type.
-                        // We can allow typing, but maybe visually indicate it's not linked?
-                        // Or we just pass it up, but the UI shows the "Add" button prominent.
-                        // Let's pass it up so the input works, but the "Add" prompt is key.
                         onChange(e.target.value);
                     }}
                     onFocus={() => {
@@ -143,17 +136,17 @@ export function SmartFoodInput({
                     {results.length > 0 && (
                         <div className="py-1">
                             <div className="px-3 py-1.5 text-xs font-semibold text-cv-text-tertiary uppercase tracking-wider">
-                                Ejercicios
+                                Alimentos
                             </div>
-                            {results.map((exercise) => (
+                            {results.map((food) => (
                                 <button
-                                    key={exercise.id}
-                                    onClick={() => handleSelect(exercise.name)}
+                                    key={food.id}
+                                    onClick={() => handleSelect(food.name)}
                                     className="w-full text-left px-3 py-2 text-sm text-cv-text-secondary hover:bg-cv-bg-tertiary hover:text-cv-text-primary transition-colors flex flex-col gap-0.5 border-b border-white/5 last:border-0"
                                 >
-                                    <span className="font-medium">{exercise.name}</span>
+                                    <span className="font-medium">{food.name}</span>
                                     <span className="text-xs text-cv-text-tertiary">
-                                        {exercise.category} {exercise.subcategory ? `• ${exercise.subcategory}` : ''}
+                                        {food.category || 'Otros'} {food.brand ? `• ${food.brand}` : ''}
                                     </span>
                                 </button>
                             ))}
@@ -184,7 +177,7 @@ export function SmartFoodInput({
                     {/* No results empty state (text only if we want) */}
                     {results.length === 0 && !isLoading && (
                         <div className="px-4 py-3 text-center text-sm text-cv-text-tertiary">
-                            No se encontraron ejercicios similares.
+                            No se encontraron alimentos similares.
                         </div>
                     )}
                 </div>

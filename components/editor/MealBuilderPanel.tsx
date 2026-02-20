@@ -1,24 +1,16 @@
 'use client';
 
-import { useDietStore, DraftMeal } from '@/lib/store';
+import { useDietStore } from '@/lib/store';
 import { MealBlockCard } from './MealBlockCard';
 import { BlockTypePalette, MEAL_BLOCK_TYPES, PaletteItem } from './BlockTypePalette';
 import { MealEditModal } from './MealEditModal';
+import { DayGoalsCompactHeader } from './DayGoalsCompactHeader';
 import {
-    Plus,
-    Trash2,
     Utensils,
-    Coffee,
-    Sun,
-    Moon,
-    GripVertical,
-    ChevronRight
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, useDroppable, pointerWithin } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, useDroppable } from '@dnd-kit/core';
 import { createPortal } from 'react-dom';
 
 interface MealBuilderPanelProps {
@@ -28,7 +20,17 @@ interface MealBuilderPanelProps {
 }
 
 export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelProps) {
-    const { days, addMeal, selectedMealId, selectMeal, deleteMeal, reorderMeals } = useDietStore();
+    const {
+        days,
+        addMeal,
+        selectedMealId,
+        selectMeal,
+        deleteMeal,
+        reorderMeals,
+        updateDay,
+        totalCaloriesDay,
+        totalProteinDay
+    } = useDietStore();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // Find the current day
@@ -96,12 +98,40 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
         }
     }, [selectedMealId]);
 
+    useEffect(() => {
+        if (!currentDay) return;
+
+        const updates: Record<string, any> = {};
+        if (currentDay.target_calories == null) updates.target_calories = 3100;
+        if (currentDay.target_protein == null) updates.target_protein = 176;
+        if (!currentDay.training_slot) updates.training_slot = 'morning';
+
+        if (Object.keys(updates).length > 0) {
+            updateDay(dayId, updates);
+        }
+    }, [
+        dayId,
+        currentDay,
+        currentDay?.id,
+        currentDay?.target_calories,
+        currentDay?.target_protein,
+        currentDay?.training_slot,
+        updateDay
+    ]);
+
     const handleCloseModal = () => {
         setIsEditModalOpen(false);
         selectMeal(null);
     };
 
     if (!currentDay) return null;
+
+    const targetCalories = currentDay.target_calories ?? 3100;
+    const targetProtein = currentDay.target_protein ?? 176;
+    const totalCalories = totalCaloriesDay(dayId);
+    const totalProtein = totalProteinDay(dayId);
+    const caloriesPct = targetCalories > 0 ? (totalCalories / targetCalories) * 100 : 0;
+    const proteinPct = targetProtein > 0 ? (totalProtein / targetProtein) * 100 : 0;
 
     // Sort meals
     const sortedMeals = [...currentDay.meals].sort((a, b) => a.order - b.order);
@@ -115,19 +145,35 @@ export function MealBuilderPanel({ dayId, dayName, onClose }: MealBuilderPanelPr
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
-            <div className="h-full flex overflow-hidden bg-slate-50 dark:bg-black">
+            <div className="h-full flex overflow-hidden bg-slate-50 dark:bg-black min-w-0">
                 {/* Left: Palette */}
-                <BlockTypePalette onItemClick={(typeId) => {
-                    console.log('PANEL: Item Clicked', typeId);
-                    addMeal(dayId, typeId);
-                }} />
+                <div className="hidden md:block shrink-0">
+                    <BlockTypePalette onItemClick={(typeId) => {
+                        console.log('PANEL: Item Clicked', typeId);
+                        addMeal(dayId, typeId);
+                    }} />
+                </div>
 
                 {/* Right: Builder Area */}
                 <div
                     ref={setDroppableRef}
                     id="day-drop-zone"
-                    className={`flex-1 flex flex-col h-full overflow-hidden relative transition-colors ${isOver ? 'bg-slate-50 dark:bg-slate-900' : ''}`}
+                    className={`min-w-0 flex-1 flex flex-col h-full overflow-hidden relative transition-colors ${isOver ? 'bg-slate-50 dark:bg-slate-900' : ''}`}
                 >
+                    <DayGoalsCompactHeader
+                        dayLabel={currentDay.name || dayName}
+                        targetCalories={targetCalories}
+                        targetProtein={targetProtein}
+                        trainingSlot={(currentDay.training_slot || 'morning') as 'rest' | 'morning' | 'afternoon' | 'night'}
+                        totalCalories={totalCalories}
+                        totalProtein={totalProtein}
+                        caloriesPct={caloriesPct}
+                        proteinPct={proteinPct}
+                        onChangeCalories={(value) => updateDay(dayId, { target_calories: value })}
+                        onChangeProtein={(value) => updateDay(dayId, { target_protein: value })}
+                        onChangeTrainingSlot={(value) => updateDay(dayId, { training_slot: value })}
+                    />
+
                     {/* Drop Zone Content */}
                     <div className="flex-1 overflow-y-auto p-6">
                         {sortedMeals.length > 0 ? (

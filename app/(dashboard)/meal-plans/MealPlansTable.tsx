@@ -16,7 +16,7 @@ interface PlanType {
     status?: string;
     created_at: string;
     updated_at: string;
-    client: { id: string; name: string; type: 'athlete' | 'gym' } | null;
+    client: { id: string; name: string; type: 'patient' | 'clinic' } | null;
 }
 
 interface MealPlansTableProps {

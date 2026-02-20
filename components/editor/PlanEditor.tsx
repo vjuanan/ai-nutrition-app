@@ -7,6 +7,7 @@ import { ArrowLeft, Save, Loader2, CheckCircle2, User, RotateCcw, RotateCw, Down
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { savePlanChanges } from '@/lib/actions';
+import { NutritionPlanExporter } from '@/components/export/NutritionPlanExporter';
 
 import { ProgramAssignmentModal } from '@/components/programs/ProgramAssignmentModal';
 
@@ -28,6 +29,7 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
 
     const [isSaving, setIsSaving] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    const [isExportOpen, setIsExportOpen] = useState(false);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -51,7 +53,7 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
         }
     };
 
-    const handleAssignSuccess = (clientId: string | null, clientName: string | null, clientType: 'athlete' | 'gym' | null) => {
+    const handleAssignSuccess = (clientId: string | null, clientName: string | null, clientType: 'patient' | 'clinic' | null) => {
         updatePlanClient(clientName);
         setIsAssignModalOpen(false);
     };
@@ -107,7 +109,10 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
                         </button>
                     )}
 
-                    <button className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 text-xs font-medium rounded-md transition-colors">
+                    <button
+                        onClick={() => setIsExportOpen(true)}
+                        className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 text-xs font-medium rounded-md transition-colors"
+                    >
                         <Download size={14} />
                         Exportar
                     </button>
@@ -151,6 +156,13 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
                 programId={planId}
                 currentClientId={null} // We don't have the ID locally, but basic assign works
                 onAssignSuccess={handleAssignSuccess}
+            />
+
+            <NutritionPlanExporter
+                isOpen={isExportOpen}
+                onClose={() => setIsExportOpen(false)}
+                planName={planName}
+                days={days}
             />
         </div>
     );
