@@ -1,6 +1,5 @@
 import { getUserRole } from '@/lib/actions';
 import { DashboardShell } from '@/components/app-shell/DashboardShell';
-import { AppProvider } from '@/lib/context/AppContext';
 
 export default async function DashboardLayout({
     children,
@@ -11,10 +10,8 @@ export default async function DashboardLayout({
     const role = await getUserRole();
 
     return (
-        <AppProvider>
-            <DashboardShell role={role}>
-                {children}
-            </DashboardShell>
-        </AppProvider>
+        <DashboardShell role={role}>
+            {children}
+        </DashboardShell>
     );
 }

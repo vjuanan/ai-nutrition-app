@@ -3,14 +3,18 @@
 import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { X, CalendarDays, Target, Timer, Loader2, ChevronRight, Sparkles, Utensils } from 'lucide-react';
-import { createNutritionalPlan } from '@/lib/actions';
+import { X, CalendarDays, Target, Timer, Loader2, ChevronRight, Palette, Image as ImageIcon, Utensils } from 'lucide-react';
+import { createNutritionalPlan, getPlanSetupDefaults } from '@/lib/actions';
 import { useEscapeKey } from '@/hooks/use-escape-key';
 import { StrategyInput } from './StrategyInput';
 
 interface NutritionalPlanWizardProps {
     isOpen: boolean;
     onClose: () => void;
+}
+
+function isHexColor(value: string) {
+    return /^#[0-9a-fA-F]{6}$/.test(value.trim());
 }
 
 export function NutritionalPlanWizard({ isOpen, onClose }: NutritionalPlanWizardProps) {
@@ -33,6 +37,12 @@ export function NutritionalPlanWizard({ isOpen, onClose }: NutritionalPlanWizard
         nextMonday.setDate(today.getDate() + daysUntilMonday);
         return nextMonday.toISOString().split('T')[0];
     });
+    const [clinicName, setClinicName] = useState('');
+    const [logoUrl, setLogoUrl] = useState('');
+    const [palettePrimary, setPalettePrimary] = useState('#0ea5e9');
+    const [paletteSecondary, setPaletteSecondary] = useState('#10b981');
+    const [exportDate, setExportDate] = useState(() => new Date().toISOString().split('T')[0]);
+    const [isLoadingDefaults, setIsLoadingDefaults] = useState(false);
 
     // Initialize with defaults: All Deficit/Maintenance/Surplus? 
     // For Nutrition, maybe "Déficit", "Mantenimiento", "Superávit"?
@@ -63,6 +73,33 @@ export function NutritionalPlanWizard({ isOpen, onClose }: NutritionalPlanWizard
         });
     };
 
+    useEffect(() => {
+        if (!isOpen) return;
+
+        let cancelled = false;
+        async function loadDefaults() {
+            setIsLoadingDefaults(true);
+            try {
+                const defaults = await getPlanSetupDefaults();
+                if (cancelled || !defaults) return;
+                setClinicName(defaults.clinicName || '');
+                setLogoUrl(defaults.logoUrl || '');
+                setPalettePrimary(defaults.palettePrimary || '#0ea5e9');
+                setPaletteSecondary(defaults.paletteSecondary || '#10b981');
+                setExportDate(defaults.exportDate || new Date().toISOString().split('T')[0]);
+            } catch (err) {
+                console.error('Error loading plan setup defaults:', err);
+            } finally {
+                if (!cancelled) setIsLoadingDefaults(false);
+            }
+        }
+
+        loadDefaults();
+        return () => {
+            cancelled = true;
+        };
+    }, [isOpen]);
+
     // Update weekly labels array when duration changes
     const handleDurationChange = (newDuration: number) => {
         const clamped = Math.max(1, Math.min(12, newDuration));
@@ -81,9 +118,33 @@ export function NutritionalPlanWizard({ isOpen, onClose }: NutritionalPlanWizard
         });
     };
 
+    const isBrandingReady = clinicName.trim().length > 0
+        && logoUrl.trim().length > 0
+        && isHexColor(palettePrimary)
+        && isHexColor(paletteSecondary)
+        && !!exportDate;
+
+    const isFormReady = !!planName.trim() && isBrandingReady && !isLoadingDefaults;
+
     const handleSubmit = async () => {
         if (!planName.trim()) {
             setError('El nombre del plan es requerido');
+            return;
+        }
+        if (!clinicName.trim()) {
+            setError('El nombre de la clínica es obligatorio antes de crear el plan.');
+            return;
+        }
+        if (!logoUrl.trim()) {
+            setError('El logo de la clínica es obligatorio antes de crear el plan.');
+            return;
+        }
+        if (!isHexColor(palettePrimary) || !isHexColor(paletteSecondary)) {
+            setError('La paleta debe estar en formato HEX válido (ej: #0ea5e9).');
+            return;
+        }
+        if (!exportDate) {
+            setError('La fecha de exportación es obligatoria.');
             return;
         }
         if (!startDate) {
@@ -99,7 +160,14 @@ export function NutritionalPlanWizard({ isOpen, onClose }: NutritionalPlanWizard
                 globalFocus: globalObjective || undefined,
                 startDate: startDate,
                 duration: duration,
-                weeklyFocusLabels: weeklyLabels.filter(l => l.trim())
+                weeklyFocusLabels: weeklyLabels.filter(l => l.trim()),
+                clinicName: clinicName.trim() || undefined,
+                exportBranding: {
+                    logoUrl: logoUrl.trim(),
+                    palettePrimary: palettePrimary.trim(),
+                    paletteSecondary: paletteSecondary.trim(),
+                    exportDate,
+                }
             });
 
             if (result?.error) {
@@ -193,6 +261,98 @@ export function NutritionalPlanWizard({ isOpen, onClose }: NutritionalPlanWizard
                             rows={2}
                             className="w-full px-3 py-2 text-sm rounded-lg bg-cv-bg-secondary border border-cv-border text-cv-text-primary placeholder:text-cv-text-tertiary focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all resize-none"
                         />
+                    </div>
+
+                    {/* Mandatory setup before creating the program */}
+                    <div className="rounded-xl border border-cv-border bg-cv-bg-secondary/60 p-3.5 space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <label className="text-xs font-semibold text-cv-text-primary flex items-center gap-1.5">
+                                <Palette size={12} className="text-green-500" />
+                                Brief de exportación obligatorio antes de crear
+                            </label>
+                            {isLoadingDefaults && (
+                                <span className="text-[11px] text-cv-text-tertiary flex items-center gap-1">
+                                    <Loader2 size={11} className="animate-spin" />
+                                    Cargando defaults...
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-[11px] font-medium text-cv-text-secondary mb-1">Clínica (dinámico) *</label>
+                                <input
+                                    type="text"
+                                    value={clinicName}
+                                    onChange={(e) => setClinicName(e.target.value)}
+                                    placeholder="Nombre de la clínica"
+                                    className="w-full px-3 py-2 text-sm rounded-lg bg-cv-bg-primary border border-cv-border text-cv-text-primary placeholder:text-cv-text-tertiary focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-medium text-cv-text-secondary mb-1">
+                                    <span className="inline-flex items-center gap-1">
+                                        <ImageIcon size={12} />
+                                        Logo URL *
+                                    </span>
+                                </label>
+                                <input
+                                    type="url"
+                                    value={logoUrl}
+                                    onChange={(e) => setLogoUrl(e.target.value)}
+                                    placeholder="https://.../logo.png"
+                                    className="w-full px-3 py-2 text-sm rounded-lg bg-cv-bg-primary border border-cv-border text-cv-text-primary placeholder:text-cv-text-tertiary focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label className="block text-[11px] font-medium text-cv-text-secondary mb-1">Paleta primaria *</label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="color"
+                                        value={palettePrimary}
+                                        onChange={(e) => setPalettePrimary(e.target.value)}
+                                        className="h-9 w-11 rounded-md border border-cv-border bg-transparent cursor-pointer"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={palettePrimary}
+                                        onChange={(e) => setPalettePrimary(e.target.value)}
+                                        placeholder="#0ea5e9"
+                                        className="w-full px-3 py-2 text-sm rounded-lg bg-cv-bg-primary border border-cv-border text-cv-text-primary placeholder:text-cv-text-tertiary focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-medium text-cv-text-secondary mb-1">Paleta secundaria *</label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="color"
+                                        value={paletteSecondary}
+                                        onChange={(e) => setPaletteSecondary(e.target.value)}
+                                        className="h-9 w-11 rounded-md border border-cv-border bg-transparent cursor-pointer"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={paletteSecondary}
+                                        onChange={(e) => setPaletteSecondary(e.target.value)}
+                                        placeholder="#10b981"
+                                        className="w-full px-3 py-2 text-sm rounded-lg bg-cv-bg-primary border border-cv-border text-cv-text-primary placeholder:text-cv-text-tertiary focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-medium text-cv-text-secondary mb-1">Fecha visible en export *</label>
+                                <input
+                                    type="date"
+                                    value={exportDate}
+                                    onChange={(e) => setExportDate(e.target.value)}
+                                    className="w-full px-3 py-2 text-sm rounded-lg bg-cv-bg-primary border border-cv-border text-cv-text-primary focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     {/* Duration & Dates Row */}
@@ -316,7 +476,7 @@ export function NutritionalPlanWizard({ isOpen, onClose }: NutritionalPlanWizard
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={isCreating || !planName.trim()}
+                        disabled={isCreating || !isFormReady}
                         className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/20 transition-all"
                     >
                         {isCreating ? (

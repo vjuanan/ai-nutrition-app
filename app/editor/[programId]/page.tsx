@@ -15,6 +15,12 @@ export default function EditorPage() {
     const { initializeStore, loadDays, resetStore, planId: storePlanId, days, autoEnterBuilder } = useDietStore();
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [exportBranding, setExportBranding] = useState<{
+        logoUrl?: string | null;
+        palettePrimary?: string | null;
+        paletteSecondary?: string | null;
+        exportDate?: string | null;
+    } | null>(null);
 
     const [isFullScreen, setIsFullScreen] = useState(true);
 
@@ -28,6 +34,7 @@ export default function EditorPage() {
         async function loadData() {
             setIsLoading(true);
             setError(null);
+            setExportBranding(null);
             resetStore();
 
             try {
@@ -47,6 +54,7 @@ export default function EditorPage() {
                     planData.objective || null,
                     planData.client?.name || null // Assuming relation is expanded
                 );
+                setExportBranding(planData.export_branding || null);
 
                 // Load Days
                 // We need to ensure the structure matches deeply
@@ -115,6 +123,7 @@ export default function EditorPage() {
             <PlanEditor
                 planId={planId}
                 planName={currentPlanName}
+                exportBranding={exportBranding}
             />
         </AppShell>
     );

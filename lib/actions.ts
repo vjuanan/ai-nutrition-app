@@ -87,6 +87,7 @@ export async function getDashboardStats() {
         return {
             showStats: false,
             userName,
+            role,
             athletes: 0,
             gyms: 0,
             activePlans: 0,
@@ -112,6 +113,7 @@ export async function getDashboardStats() {
     return {
         showStats: true,
         userName,
+        role,
         athletes: patients || 0,
         gyms: clinics || 0,
         activePlans: plans || 0,
@@ -1337,7 +1339,73 @@ export async function getTemplates() {
     return [];
 }
 
-export async function copyTemplateToProgram(templateId: string, targetId: string) {
-    return { success: true, programId: 'dummy' };
+export async function copyTemplateToProgram(templateId: string, targetId?: string) {
+    return { success: true, data: { id: 'dummy' }, error: null as string | null };
 }
+
+export async function getAdministrationUserDetail(userId: string) {
+    return {
+        data: {
+            id: userId,
+            email: 'usuario@ainutri.com',
+            full_name: 'Usuario Administrador',
+            role: 'patient',
+            onboarding_completed: true,
+            clinic_id: null as string | null,
+            birth_date: '1990-01-01',
+            gender: 'M',
+            weight: 70,
+            height: 170,
+            activity_level: 'Moderado',
+            diet_type: 'Omnívora',
+            allergies: 'Ninguna',
+            nutrition_goal: '',
+            medical_conditions: [] as string[],
+            medical_notes: '',
+            food_allergies: [] as string[],
+            other_allergies: '',
+            meals_per_day: 4,
+            diet_preference: '',
+            whatsapp_number: '',
+            avatar_url: '',
+            professional_title: '',
+            license_number: '',
+            specialization: '',
+            clinic_name: '',
+            clinic_address: '',
+            consultation_modality: '',
+            approach: [] as string[],
+            experience_years: 0,
+            contact_phone: '',
+            website_url: '',
+            instagram_handle: '',
+            client_name: '',
+            client_details: {
+                clinic_address: '',
+                consultation_modality: '',
+                approach: [] as string[],
+                experience_years: 0,
+                contact_phone: '',
+                website_url: '',
+                instagram_handle: ''
+            }
+        },
+        clinics: [] as Array<{ id: string; name: string }>,
+        error: null as string | null
+    };
+}
+
+export async function updateAdministrationUser(userIdOrArgs: any, updates?: any) {
+    return { success: true, error: null as string | null };
+}
+
+export async function getPlanSetupDefaults() {
+    return {
+        calories: 2000,
+        protein: 150,
+        carbs: 200,
+        fats: 70
+    };
+}
+
 

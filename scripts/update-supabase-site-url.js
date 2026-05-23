@@ -2,7 +2,7 @@
 require('dotenv').config({ path: '.env.local' });
 
 const accessToken = process.env.SUPABASE_ACCESS_TOKEN;
-const projectRef = 'dfbxffnuwkcbnxfwyvcc';
+const projectRef = 'jkuhzdicmfjvnrdznvoh';
 const siteUrl = 'https://ainutrition.epnstore.com.ar';
 
 if (!accessToken) {

@@ -6,6 +6,30 @@ import { Loader2, Apple, AlertCircle, Mail, Lock, ChevronRight } from 'lucide-re
 import { login } from '@/app/auth/actions';
 import Image from 'next/image';
 
+function mapAuthError(params: URLSearchParams) {
+    const error = (params.get('error') || '').toLowerCase();
+    const errorCode = (params.get('error_code') || '').toLowerCase();
+    const description = decodeURIComponent(params.get('error_description') || '').toLowerCase();
+
+    if (errorCode === 'otp_expired') {
+        return 'El enlace de confirmación expiró o ya fue usado. Solicitá uno nuevo e inténtalo nuevamente.';
+    }
+
+    if (error === 'access_denied' && /invalid|expired/.test(description)) {
+        return 'El enlace de acceso no es válido o expiró. Volvé a registrarte o pedí un nuevo enlace.';
+    }
+
+    if (error === 'auth-code-error') {
+        return 'No se pudo validar el enlace de acceso. Probá iniciando sesión manualmente.';
+    }
+
+    if (error || errorCode) {
+        return 'No se pudo completar la validación del enlace. Intentá nuevamente.';
+    }
+
+    return null;
+}
+
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -14,6 +38,16 @@ export default function LoginPage() {
 
     useEffect(() => {
         setMounted(true);
+
+        const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
+        const hashParams = new URLSearchParams(hash);
+        const searchParams = new URLSearchParams(window.location.search);
+        const parsedError = mapAuthError(hashParams) || mapAuthError(searchParams);
+
+        if (parsedError) {
+            setError(parsedError);
+            window.history.replaceState({}, document.title, '/login');
+        }
     }, []);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

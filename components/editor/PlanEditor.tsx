@@ -14,9 +14,15 @@ import { ProgramAssignmentModal } from '@/components/programs/ProgramAssignmentM
 interface PlanEditorProps {
     planId: string;
     planName: string;
+    exportBranding?: {
+        logoUrl?: string | null;
+        palettePrimary?: string | null;
+        paletteSecondary?: string | null;
+        exportDate?: string | null;
+    } | null;
 }
 
-export function PlanEditor({ planId, planName }: PlanEditorProps) {
+export function PlanEditor({ planId, planName, exportBranding = null }: PlanEditorProps) {
     const {
         days,
         mealBuilderDayId,
@@ -163,6 +169,7 @@ export function PlanEditor({ planId, planName }: PlanEditorProps) {
                 onClose={() => setIsExportOpen(false)}
                 planName={planName}
                 days={days}
+                branding={exportBranding}
             />
         </div>
     );

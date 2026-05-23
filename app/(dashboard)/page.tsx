@@ -1,10 +1,11 @@
 'use client';
 
-import { useAppStore } from '@/lib/store';
 import { getDashboardStats } from '@/lib/actions'; // Keep for getting the name
 import {
     Users,
     Utensils,
+    Dumbbell,
+    BookOpen,
     ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
@@ -14,9 +15,9 @@ import { motion } from 'framer-motion';
 import { Topbar } from '@/components/app-shell/Topbar';
 
 export default function DashboardPage() {
-    const { currentView } = useAppStore();
     const [stats, setStats] = useState({
-        userName: 'Coach'
+        userName: 'Coach',
+        role: 'nutritionist' as 'superadmin' | 'admin' | 'nutritionist' | 'patient',
     });
     const [isNutritionalWizardOpen, setIsNutritionalWizardOpen] = useState(false);
 
@@ -25,7 +26,10 @@ export default function DashboardPage() {
             try {
                 // We only really need the user name for now, but keeping the call compatible
                 const statsData = await getDashboardStats();
-                setStats(curr => ({ ...curr, userName: statsData.userName || 'Coach' }));
+                setStats({
+                    userName: statsData.userName || 'Coach',
+                    role: statsData.role || 'nutritionist',
+                });
             } catch (err) {
                 console.error(err);
             }
@@ -83,44 +87,80 @@ export default function DashboardPage() {
 
                 {/* Action Cards */}
                 <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                    {/* View Patients Card */}
-                    <Link href="/patients" className="group">
-                        <div className="h-full p-8 rounded-2xl bg-cv-bg-secondary/50 backdrop-blur-xl border border-cv-border hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-1 flex flex-col items-center text-center gap-4">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400/10 to-emerald-600/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                <Users size={32} className="text-emerald-500" />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-semibold text-cv-text-primary">Ver Pacientes</h3>
-                                <p className="text-cv-text-tertiary">Gestiona tus pacientes y sus progresos</p>
-                            </div>
-                            <div className="mt-auto pt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
-                                <span className="flex items-center gap-2 text-emerald-500 font-medium">
-                                    Ir a pacientes <ArrowRight size={16} />
-                                </span>
-                            </div>
-                        </div>
-                    </Link>
-
-                    {/* Create Nutrition Program Card */}
-                    <button
-                        onClick={() => setIsNutritionalWizardOpen(true)}
-                        className="w-full text-left group"
-                    >
-                        <div className="h-full p-8 rounded-2xl bg-cv-bg-secondary/50 backdrop-blur-xl border border-cv-border hover:border-cyan-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 flex flex-col items-center text-center gap-4">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400/10 to-cyan-600/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                <Utensils size={32} className="text-cyan-500" />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-semibold text-cv-text-primary">Crear Programa</h3>
-                                <p className="text-cv-text-tertiary">Diseña un nuevo plan nutricional</p>
-                            </div>
-                            <div className="mt-auto pt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
-                                <span className="flex items-center gap-2 text-cyan-500 font-medium">
-                                    Comenzar ahora <ArrowRight size={16} />
-                                </span>
-                            </div>
-                        </div>
-                    </button>
+                    {stats.role === 'patient' ? (
+                        <>
+                            <Link href="/foods" className="group">
+                                <div className="h-full p-8 rounded-2xl bg-cv-bg-secondary/50 backdrop-blur-xl border border-cv-border hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-1 flex flex-col items-center text-center gap-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400/10 to-emerald-600/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                        <Dumbbell size={32} className="text-emerald-500" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-semibold text-cv-text-primary">Alimentos</h3>
+                                        <p className="text-cv-text-tertiary">Revisa alimentos y macros</p>
+                                    </div>
+                                    <div className="mt-auto pt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                        <span className="flex items-center gap-2 text-emerald-500 font-medium">
+                                            Ir a alimentos <ArrowRight size={16} />
+                                        </span>
+                                    </div>
+                                </div>
+                            </Link>
+                            <Link href="/knowledge" className="group">
+                                <div className="h-full p-8 rounded-2xl bg-cv-bg-secondary/50 backdrop-blur-xl border border-cv-border hover:border-cyan-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 flex flex-col items-center text-center gap-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400/10 to-cyan-600/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                        <BookOpen size={32} className="text-cyan-500" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-semibold text-cv-text-primary">Conocimiento</h3>
+                                        <p className="text-cv-text-tertiary">Aprende y consulta guías</p>
+                                    </div>
+                                    <div className="mt-auto pt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                        <span className="flex items-center gap-2 text-cyan-500 font-medium">
+                                            Abrir conocimiento <ArrowRight size={16} />
+                                        </span>
+                                    </div>
+                                </div>
+                            </Link>
+                        </>
+                    ) : (
+                        <>
+                            <Link href="/patients" className="group">
+                                <div className="h-full p-8 rounded-2xl bg-cv-bg-secondary/50 backdrop-blur-xl border border-cv-border hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-1 flex flex-col items-center text-center gap-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400/10 to-emerald-600/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                        <Users size={32} className="text-emerald-500" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-semibold text-cv-text-primary">Ver Pacientes</h3>
+                                        <p className="text-cv-text-tertiary">Gestiona tus pacientes y sus progresos</p>
+                                    </div>
+                                    <div className="mt-auto pt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                        <span className="flex items-center gap-2 text-emerald-500 font-medium">
+                                            Ir a pacientes <ArrowRight size={16} />
+                                        </span>
+                                    </div>
+                                </div>
+                            </Link>
+                            <button
+                                onClick={() => setIsNutritionalWizardOpen(true)}
+                                className="w-full text-left group"
+                            >
+                                <div className="h-full p-8 rounded-2xl bg-cv-bg-secondary/50 backdrop-blur-xl border border-cv-border hover:border-cyan-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 flex flex-col items-center text-center gap-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400/10 to-cyan-600/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                        <Utensils size={32} className="text-cyan-500" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-semibold text-cv-text-primary">Crear Programa</h3>
+                                        <p className="text-cv-text-tertiary">Diseña un nuevo plan nutricional</p>
+                                    </div>
+                                    <div className="mt-auto pt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                        <span className="flex items-center gap-2 text-cyan-500 font-medium">
+                                            Comenzar ahora <ArrowRight size={16} />
+                                        </span>
+                                    </div>
+                                </div>
+                            </button>
+                        </>
+                    )}
                 </motion.div>
             </motion.div>
 

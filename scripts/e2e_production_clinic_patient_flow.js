@@ -115,11 +115,26 @@ async function login(page, baseUrl, email, password) {
     await page.goto(`${baseUrl}/login`, { waitUntil: 'networkidle' });
     await wait(1200);
 
-    const emailInput = page.locator('input[name="email"]');
-    const passwordInput = page.locator('input[name="password"]');
+    if (!page.url().includes('/login')) return;
 
-    await emailInput.waitFor({ state: 'visible', timeout: 15000 });
-    await emailInput.click();
+    const challengeText = await page.locator('body').innerText().catch(() => '');
+    if (/just a moment|verifying|checking your browser/i.test(challengeText || '')) {
+      await wait(5000);
+      await page.reload({ waitUntil: 'networkidle' }).catch(() => {});
+    }
+
+    const emailInput = page.locator('input[name="email"], input[type="email"]').first();
+    const passwordInput = page.locator('input[name="password"], input[type="password"]').first();
+
+    const loginInputsReady = await emailInput.waitFor({ state: 'visible', timeout: 30000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!loginInputsReady) {
+      lastError = 'Login form no visible';
+      await wait(2000 * attempt);
+      continue;
+    }
+
     await emailInput.fill(email);
     await passwordInput.fill(password);
 
@@ -134,7 +149,7 @@ async function login(page, baseUrl, email, password) {
       page.click('button[type="submit"]'),
       page.waitForLoadState('networkidle')
     ]);
-    await wait(1200);
+    await wait(1600);
 
     let currentUrl = page.url();
     if (!currentUrl.includes('/login')) {
@@ -149,7 +164,7 @@ async function login(page, baseUrl, email, password) {
     const errorText = await page.locator('text=/Credenciales|verificá|Error|error/i').first().textContent().catch(() => 'Sin mensaje');
     lastError = (errorText || '').trim() || 'Sin mensaje';
 
-    if (lastError.toLowerCase().includes('credenciales incorrectas') && attempt < 5) {
+    if (attempt < 5 && (lastError === 'Sin mensaje' || lastError.toLowerCase().includes('credenciales incorrectas') || lastError.toLowerCase().includes('verificá'))) {
       await wait(2000 * attempt);
       continue;
     }
@@ -158,6 +173,56 @@ async function login(page, baseUrl, email, password) {
   }
 
   throw new Error(`Login falló para ${email}. Reintentos agotados. Último error: ${lastError}`);
+}
+
+async function completeOnboarding(page, targetRole) {
+  if (!page.url().includes('/onboarding')) return;
+
+  if (targetRole === 'nutritionist') {
+    await page.getByRole('button', { name: /Soy Nutricionista/i }).first().click().catch(() => {});
+  } else {
+    await page.getByRole('button', { name: /Soy Paciente/i }).first().click().catch(() => {});
+  }
+  await wait(1200);
+
+  for (let i = 0; i < 28; i += 1) {
+    if (!page.url().includes('/onboarding')) break;
+
+    const nextButton = page.getByRole('button', { name: /Siguiente|Finalizar|Continuar/i }).last();
+    const visible = await nextButton.isVisible().catch(() => false);
+    if (!visible) {
+      await wait(1200);
+      continue;
+    }
+
+    await nextButton.click();
+    await wait(1600);
+  }
+
+  const completed = await retry(async () => (
+    !page.url().includes('/onboarding') ? true : null
+  ), {
+    timeoutMs: 40000,
+    intervalMs: 1000,
+    label: `wait onboarding finish (${targetRole})`
+  });
+  assertOrThrow(!!completed, `Onboarding no se completó para ${targetRole}`);
+}
+
+async function closeMealEditModalIfOpen(page) {
+  const modalRoot = page.locator('div.fixed.inset-0.z-\\[100\\]').first();
+  for (let i = 0; i < 6; i += 1) {
+    const modalVisible = await modalRoot.isVisible().catch(() => false);
+    if (!modalVisible) return;
+
+    const doneButton = page.getByRole('button', { name: /^Listo$/ }).first();
+    if (await doneButton.isVisible().catch(() => false)) {
+      await doneButton.click({ force: true }).catch(() => {});
+    } else {
+      await page.keyboard.press('Escape').catch(() => {});
+    }
+    await wait(700);
+  }
 }
 
 async function run() {
@@ -254,7 +319,7 @@ async function run() {
       } catch (_) {
         signupUiSuccess = false;
         const bodyText = await page.locator('body').innerText();
-        if (/email rate limit exceeded/i.test(bodyText)) {
+        if (/email rate limit exceeded|l[ií]mite temporal de registros/i.test(bodyText)) {
           signupFailureReason = 'email rate limit exceeded';
         }
       }
@@ -303,22 +368,7 @@ async function run() {
 
       await login(page, baseUrl, clinic.email, clinic.password);
 
-      if (page.url().includes('/onboarding')) {
-        await page.getByRole('button', { name: /Soy Nutricionista/i }).click();
-
-        for (let i = 0; i < 8; i += 1) {
-          if (!page.url().includes('/onboarding')) break;
-          const nextButton = page.getByRole('button', { name: /Siguiente|Finalizar/i }).last();
-          await nextButton.click();
-          await wait(900);
-        }
-
-        await retry(async () => !page.url().includes('/onboarding'), {
-          timeoutMs: 30000,
-          intervalMs: 1000,
-          label: 'wait onboarding finish'
-        });
-      }
+      await completeOnboarding(page, 'nutritionist');
 
       await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
       await takeShot(page, outDir, '02_clinic_dashboard_after_onboarding');
@@ -364,7 +414,7 @@ async function run() {
       onboardingCompleted: clinicProfile.onboarding_completed,
     });
 
-    // Step 2: Admin creates patient and assigns clinic.
+    // Step 2: Admin/Superadmin creates patient and assigns clinic.
     const adminUser = await ensureAdminUser(adminSupabase, admin.email, admin.password, admin.name);
     assertOrThrow(!!adminUser, 'No se pudo preparar usuario admin');
 
@@ -374,35 +424,95 @@ async function run() {
       await login(page, baseUrl, admin.email, admin.password);
 
       await page.goto(`${baseUrl}/admin/users`, { waitUntil: 'networkidle' });
-      assertOrThrow(page.url().includes('/admin/users'), `Admin no accedió a /admin/users. URL=${page.url()}`);
-      await takeShot(page, outDir, '03_admin_users_page');
+      const adminUsersPath = new URL(page.url()).pathname;
 
-      await page.locator('button[title="Crear Usuario"]').click();
-      const modal = page.locator('div.fixed.inset-0').filter({ hasText: 'Crear Nuevo Usuario' });
-      await modal.waitFor({ state: 'visible', timeout: 15000 });
+      if (adminUsersPath === '/admin/users' || adminUsersPath === '/administration') {
+        await takeShot(page, outDir, '03_admin_users_page');
 
-      await modal.locator('input[type="text"]').first().fill(patient.name);
-      await modal.locator('input[type="email"]').fill(patient.email);
-      await modal.locator('input[type="password"]').fill(patient.password);
-      await modal.locator('select').first().selectOption('patient');
-      await modal.locator('select').nth(1).selectOption({ label: clinic.name });
-      await modal.getByRole('button', { name: /Crear Usuario/i }).click();
+        await page.locator('button[title="Crear Usuario"]').click();
+        const modal = page.locator('div.fixed.inset-0').filter({ hasText: 'Crear Nuevo Usuario' });
+        await modal.waitFor({ state: 'visible', timeout: 15000 });
 
-      await retry(async () => {
-        const isVisible = await modal.isVisible().catch(() => false);
-        return !isVisible;
-      }, { timeoutMs: 20000, intervalMs: 500, label: 'wait create user modal close' });
+        await modal.locator('input[type="text"]').first().fill(patient.name);
+        await modal.locator('input[type="email"]').fill(patient.email);
+        await modal.locator('input[type="password"]').fill(patient.password);
+        await modal.locator('select').first().selectOption('patient');
+        await modal.locator('select').nth(1).selectOption({ label: clinic.name });
+        await modal.getByRole('button', { name: /Crear Usuario/i }).click();
 
-      await page.waitForTimeout(1500);
-      await takeShot(page, outDir, '04_admin_created_patient');
+        await retry(async () => {
+          const isVisible = await modal.isVisible().catch(() => false);
+          return !isVisible;
+        }, { timeoutMs: 20000, intervalMs: 500, label: 'wait create user modal close' });
 
-      const row = page.locator('tr').filter({ hasText: patient.email });
-      const rowCount = await row.count();
-      assertOrThrow(rowCount > 0, 'No se encontró paciente creado en tabla de usuarios');
+        await page.waitForTimeout(1500);
+        await takeShot(page, outDir, '04_admin_created_patient');
 
-      markStep('Admin crea paciente y asigna clínica (UI)', true, {
-        screenshot: '04_admin_created_patient.png'
-      });
+        const row = page.locator('tr').filter({ hasText: patient.email });
+        const rowCount = await row.count();
+        assertOrThrow(rowCount > 0, 'No se encontró paciente creado en tabla de usuarios');
+
+        markStep('Admin crea paciente y asigna clínica (UI)', true, {
+          screenshot: '04_admin_created_patient.png'
+        });
+      } else {
+        // If admin pages are superadmin-only in this deployment, fallback to API creation for continuity.
+        const { data: createdUser, error: createUserError } = await adminSupabase.auth.admin.createUser({
+          email: patient.email,
+          password: patient.password,
+          email_confirm: true,
+          user_metadata: { full_name: patient.name, role: 'patient' }
+        });
+        if (createUserError && !createUserError.message.toLowerCase().includes('already')) throw createUserError;
+
+        const patientAuth = createdUser?.user || await findUserByEmail(adminSupabase, patient.email);
+        assertOrThrow(!!patientAuth, 'No se pudo crear/obtener paciente en fallback API');
+
+        const { error: profileUpsertError } = await adminSupabase.from('profiles').upsert({
+          id: patientAuth.id,
+          email: patient.email,
+          full_name: patient.name,
+          role: 'patient',
+          onboarding_completed: true
+        }, { onConflict: 'id' });
+        if (profileUpsertError) throw profileUpsertError;
+
+        const { data: existingPatientClient } = await adminSupabase
+          .from('clients')
+          .select('id')
+          .eq('user_id', patientAuth.id)
+          .maybeSingle();
+
+        if (existingPatientClient?.id) {
+          const { error: updateClientError } = await adminSupabase
+            .from('clients')
+            .update({
+              type: 'patient',
+              name: patient.name,
+              email: patient.email,
+              clinic_id: clinicClient.id
+            })
+            .eq('id', existingPatientClient.id);
+          if (updateClientError) throw updateClientError;
+        } else {
+          const { error: insertClientError } = await adminSupabase
+            .from('clients')
+            .insert({
+              type: 'patient',
+              name: patient.name,
+              email: patient.email,
+              user_id: patientAuth.id,
+              clinic_id: clinicClient.id
+            });
+          if (insertClientError) throw insertClientError;
+        }
+
+        await takeShot(page, outDir, '04_admin_blocked_patient_created_via_api');
+        markStep('Admin bloqueado en users; fallback API crea paciente', true, {
+          screenshot: '04_admin_blocked_patient_created_via_api.png',
+          blockedPath: adminUsersPath
+        });
+      }
 
       await context.close();
     }
@@ -454,6 +564,10 @@ async function run() {
       const planName = `Plan E2E ${runId}`;
       await page.locator('input[placeholder*="High Protein"]').fill(planName);
       await page.locator('textarea').first().fill('Plan creado por flujo E2E producción');
+      await page.locator('input[placeholder="Nombre de la clínica"]').fill(clinic.name);
+      await page.locator('input[placeholder="https://.../logo.png"]').fill('https://ainutrition.epnstore.com.ar/images/ai-nutrition-logo.png');
+      await page.locator('input[placeholder="#0ea5e9"]').fill('#0ea5e9');
+      await page.locator('input[placeholder="#10b981"]').fill('#10b981');
       await page.getByRole('button', { name: /Crear Plan/i }).click();
 
       await page.waitForURL(/\/editor\//, { timeout: 30000 });
@@ -482,16 +596,11 @@ async function run() {
       assertOrThrow(addCount > 0, 'No se encontraron botones de añadir bloque en editor');
       await addButtons.first().click();
       await page.waitForSelector('text=Desayuno', { timeout: 15000 });
-
-      // New meal can open MealEditModal by default; close it before clicking topbar save.
-      const mealDoneButton = page.getByRole('button', { name: /^Listo$/ }).first();
-      if (await mealDoneButton.isVisible().catch(() => false)) {
-        await mealDoneButton.click();
-        await wait(600);
-      }
+      await closeMealEditModalIfOpen(page);
+      await page.waitForTimeout(600);
 
       const saveButton = page.getByRole('button', { name: /^Guardar$/ }).first();
-      await saveButton.click();
+      await saveButton.click({ force: true });
       await page.waitForTimeout(2500);
       await takeShot(page, outDir, '07_editor_saved_by_clinic');
 
@@ -534,50 +643,37 @@ async function run() {
       mealsInFirstDay: dayMealsCount,
     });
 
-    // Step 4 + 5: Patient can view/edit assigned plan and access restrictions.
+    // Step 4 + 5: Patient role restrictions and allowed areas.
     {
       const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
       const page = await context.newPage();
       await login(page, baseUrl, patient.email, patient.password);
+      await completeOnboarding(page, 'patient');
 
-      await page.goto(`${baseUrl}/meal-plans`, { waitUntil: 'networkidle' });
-      await page.waitForSelector('text=/Plan E2E|No hay planes creados/i', { timeout: 15000 });
-      const planVisible = await page.locator(`text=Plan E2E ${runId}`).count();
-      assertOrThrow(planVisible > 0, 'Paciente no visualiza su plan asignado en /meal-plans');
-
-      await page.goto(`${baseUrl}/editor/${createdPlanId}`, { waitUntil: 'networkidle' });
-      await page.waitForSelector('text=Objetivos', { timeout: 15000 });
-
-      // Edit as patient: add another block and save.
-      const addButtons = page.locator('button[title="Añadir al plan"]');
-      await addButtons.nth(1).click();
-      await page.waitForTimeout(1000);
-
-      const patientMealDoneButton = page.getByRole('button', { name: /^Listo$/ }).first();
-      if (await patientMealDoneButton.isVisible().catch(() => false)) {
-        await patientMealDoneButton.click();
-        await wait(600);
-      }
-
-      await page.getByRole('button', { name: /^Guardar$/ }).first().click();
-      await page.waitForTimeout(2500);
-      await takeShot(page, outDir, '08_patient_editor_save');
+      await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
+      await takeShot(page, outDir, '08_patient_dashboard');
 
       // Sidebar restriction quick checks
+      const sidebarHasClinics = await page.locator('nav a:has-text("Clínicas")').count();
+      const sidebarHasPlans = await page.locator('nav a:has-text("Planes")').count();
+      const sidebarHasTemplates = await page.locator('nav a:has-text("Plantillas")').count();
       const sidebarHasUsers = await page.locator('nav a:has-text("Usuarios")').count();
       const sidebarHasPatients = await page.locator('nav a:has-text("Pacientes")').count();
-      assertOrThrow(sidebarHasUsers === 0 && sidebarHasPatients === 0, 'Paciente ve secciones restringidas en sidebar');
+      assertOrThrow(
+        sidebarHasUsers === 0 && sidebarHasPatients === 0 && sidebarHasClinics === 0 && sidebarHasPlans === 0 && sidebarHasTemplates === 0,
+        'Paciente ve secciones restringidas en sidebar'
+      );
 
-      const blockedRoutes = ['/admin/users', '/clinics', '/patients', '/foods', '/knowledge'];
+      const blockedRoutes = ['/admin/users', '/administration', '/clinics', '/patients', '/meal-plans', '/templates', `/editor/${createdPlanId}`];
       for (const route of blockedRoutes) {
         await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded' });
         await wait(900);
         const finalPath = new URL(page.url()).pathname;
         report.accessChecks.patientBlocked[route] = finalPath;
-        assertOrThrow(finalPath.startsWith('/meal-plans'), `Paciente no fue bloqueado en ${route}; terminó en ${finalPath}`);
+        assertOrThrow(finalPath === '/', `Paciente no fue bloqueado en ${route}; terminó en ${finalPath}`);
       }
 
-      const allowedRoutes = ['/settings', `/editor/${createdPlanId}`, '/meal-plans', '/'];
+      const allowedRoutes = ['/settings', '/foods', '/knowledge', '/'];
       for (const route of allowedRoutes) {
         await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded' });
         await wait(900);
@@ -586,8 +682,8 @@ async function run() {
         assertOrThrow(finalPath === route || (route === '/' && finalPath === '/'), `Paciente no pudo acceder a ${route}; terminó en ${finalPath}`);
       }
 
-      markStep('Paciente visualiza y edita plan + RBAC paciente', true, {
-        screenshot: '08_patient_editor_save.png'
+      markStep('RBAC paciente (solo panel/alimentos/conocimiento/perfil)', true, {
+        screenshot: '08_patient_dashboard.png'
       });
       await context.close();
     }
@@ -609,22 +705,36 @@ async function run() {
       await context.close();
     }
 
-    // Admin can access /admin/users
+    // Admin (non-superadmin) should be blocked from administration areas
     {
       const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
       const page = await context.newPage();
       await login(page, baseUrl, admin.email, admin.password);
-      await page.goto(`${baseUrl}/admin/users`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${baseUrl}/administration`, { waitUntil: 'domcontentloaded' });
       await wait(1000);
       const finalPath = new URL(page.url()).pathname;
       report.accessChecks.adminUsersAccess = finalPath;
-      assertOrThrow(finalPath === '/admin/users', `Admin no accedió a /admin/users; terminó en ${finalPath}`);
-      await takeShot(page, outDir, '10_admin_access_admin_users');
-      markStep('RBAC admin acceso total /admin/users', true, {
-        screenshot: '10_admin_access_admin_users.png'
+      assertOrThrow(finalPath === '/', `Admin no fue bloqueado en /administration; terminó en ${finalPath}`);
+      await takeShot(page, outDir, '10_admin_blocked_administration');
+      markStep('RBAC admin bloqueado de Administración (solo superadmin)', true, {
+        screenshot: '10_admin_blocked_administration.png'
       });
       await context.close();
     }
+
+    // Superadmin identity check in DB
+    const { data: superadminProfile, error: superadminProfileError } = await adminSupabase
+      .from('profiles')
+      .select('id, email, role')
+      .ilike('email', 'vjuanan@gmail.com')
+      .maybeSingle();
+    if (superadminProfileError) throw superadminProfileError;
+    assertOrThrow(!!superadminProfile, 'No existe perfil para superadmin vjuanan@gmail.com');
+    assertOrThrow(superadminProfile.role === 'admin', `Rol base de superadmin inesperado: ${superadminProfile.role}`);
+    markStep('Superadmin único identificado por email reservado', true, {
+      email: superadminProfile.email,
+      profileId: superadminProfile.id
+    });
 
     report.finishedAt = new Date().toISOString();
     report.success = true;

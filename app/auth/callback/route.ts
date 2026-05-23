@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { resolveAppRole } from '@/lib/rbac';
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url);
@@ -37,22 +38,17 @@ export async function GET(request: Request) {
                 .eq('id', data.user.id)
                 .single();
 
-            const role = profile?.role;
+            const role = resolveAppRole(data.user.email, profile?.role);
             const onboardingCompleted = profile?.onboarding_completed ?? false;
-            const normalizedRole = role === 'admin'
-                ? 'admin'
-                : role === 'athlete' || role === 'patient'
-                    ? 'patient'
-                    : 'nutritionist';
 
             if (!onboardingCompleted) {
                 next = '/onboarding';
-            } else if (normalizedRole === 'patient') {
-                next = '/meal-plans';
-            } else if (normalizedRole === 'nutritionist') {
+            } else if (role === 'patient') {
+                next = '/';
+            } else if (role === 'nutritionist') {
                 next = '/';
             }
-            // Admin remains on default '/'
+            // Superadmin/Admin remain on default '/'
 
             return NextResponse.redirect(`${origin}${next}`);
         }

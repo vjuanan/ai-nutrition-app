@@ -4,9 +4,12 @@ import { useDraggable } from '@dnd-kit/core';
 import {
     Utensils,
     Coffee,
+    Sun,
+    Moon,
     Apple,
     Cookie,
-    Timer,
+    Dumbbell,
+    Activity,
     Plus
 } from 'lucide-react';
 
@@ -18,14 +21,6 @@ export const MEAL_BLOCK_TYPES = [
         color: 'text-orange-500',
         bg: 'bg-orange-50 dark:bg-orange-950/30',
         ring: 'ring-orange-500'
-    },
-    {
-        id: 'Colación',
-        label: 'Colación',
-        icon: Apple,
-        color: 'text-green-500',
-        bg: 'bg-green-50 dark:bg-green-950/30',
-        ring: 'ring-green-500'
     },
     {
         id: 'Almuerzo',
@@ -44,9 +39,33 @@ export const MEAL_BLOCK_TYPES = [
         ring: 'ring-pink-500'
     },
     {
-        id: 'Ayuno',
-        label: 'Ayuno',
-        icon: Timer,
+        id: 'Cena',
+        label: 'Cena',
+        icon: Moon,
+        color: 'text-indigo-500',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/30',
+        ring: 'ring-indigo-500'
+    },
+    {
+        id: 'Colación',
+        label: 'Colación',
+        icon: Apple,
+        color: 'text-green-500',
+        bg: 'bg-green-50 dark:bg-green-950/30',
+        ring: 'ring-green-500'
+    },
+    {
+        id: 'Pre-Entreno',
+        label: 'Pre-Entreno',
+        icon: Dumbbell,
+        color: 'text-red-500',
+        bg: 'bg-red-50 dark:bg-red-950/30',
+        ring: 'ring-red-500'
+    },
+    {
+        id: 'Post-Entreno',
+        label: 'Post-Entreno',
+        icon: Activity,
         color: 'text-purple-500',
         bg: 'bg-purple-50 dark:bg-purple-950/30',
         ring: 'ring-purple-500'

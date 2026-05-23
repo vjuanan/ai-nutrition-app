@@ -52,5 +52,7 @@ lint_output.txt
 search_results.txt
 *_failed.png
 verify_button.png
+tmp-*.png
+tmp-debug/
 
 .env.vercel

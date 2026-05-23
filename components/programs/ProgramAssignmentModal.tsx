@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { getClients, updateNutritionalPlan } from '@/lib/actions';
-import { Loader2, Search, User, Dumbbell, Check } from 'lucide-react';
+import { Loader2, Search, User, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ProgramAssignmentModalProps {
@@ -20,21 +20,13 @@ export function ProgramAssignmentModal({
     onClose,
     programId,
     currentClientId,
-    initialClientType,
     onAssignSuccess
 }: ProgramAssignmentModalProps) {
-    const [activeTab, setActiveTab] = useState<'patient' | 'clinic'>('patient');
+    const [activeTab] = useState<'patient'>('patient');
     const [clients, setClients] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSaving, setIsSaving] = useState(false);
-
-    // Set initial tab based on current assignment
-    useEffect(() => {
-        if (isOpen && initialClientType) {
-            setActiveTab(initialClientType);
-        }
-    }, [isOpen, initialClientType]);
 
     // Load clients when tab changes or modal opens
     useEffect(() => {
@@ -90,36 +82,16 @@ export function ProgramAssignmentModal({
             isOpen={isOpen}
             onClose={onClose}
             title="Asignar Plan Nutricional"
-            description="Selecciona un Atleta o Gimnasio para asignar este plan."
+            description="Selecciona un paciente para asignar este plan."
             maxWidth="max-w-xl"
         >
             <div className="flex flex-col h-[60vh]">
                 {/* Tabs */}
                 <div className="flex items-center gap-4 mb-4 border-b border-white/10 pb-4">
-                    <button
-                        onClick={() => setActiveTab('patient')}
-                        className={`pb-2 px-1 text-sm font-medium transition-colors relative ${activeTab === 'patient'
-                            ? 'text-cv-accent'
-                            : 'text-gray-400 hover:text-white'
-                            }`}
-                    >
+                    <span className="pb-2 px-1 text-sm font-medium text-cv-accent relative">
                         Pacientes
-                        {activeTab === 'patient' && (
-                            <span className="absolute bottom-[-17px] left-0 right-0 h-0.5 bg-cv-accent" />
-                        )}
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('clinic')}
-                        className={`pb-2 px-1 text-sm font-medium transition-colors relative ${activeTab === 'clinic'
-                            ? 'text-cv-accent'
-                            : 'text-gray-400 hover:text-white'
-                            }`}
-                    >
-                        Clínicas
-                        {activeTab === 'clinic' && (
-                            <span className="absolute bottom-[-17px] left-0 right-0 h-0.5 bg-cv-accent" />
-                        )}
-                    </button>
+                        <span className="absolute bottom-[-17px] left-0 right-0 h-0.5 bg-cv-accent" />
+                    </span>
                 </div>
 
                 {/* Search */}
@@ -127,7 +99,7 @@ export function ProgramAssignmentModal({
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
                     <input
                         type="text"
-                        placeholder={`Buscar ${activeTab === 'patient' ? 'paciente' : 'clínica'}...`}
+                        placeholder="Buscar paciente..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cv-accent/50"
@@ -156,7 +128,7 @@ export function ProgramAssignmentModal({
                                     <div className="flex items-center gap-3">
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeTab === 'patient' ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'
                                             }`}>
-                                            {activeTab === 'patient' ? <User size={18} /> : <Dumbbell size={18} />}
+                                            <User size={18} />
                                         </div>
                                         <div className="text-left">
                                             <p className={`font-medium ${isSelected ? 'text-cv-accent' : 'text-white'}`}>

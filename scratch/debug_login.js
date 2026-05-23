@@ -4,7 +4,7 @@ const path = require('path');
 
 dotenv.config({ path: path.join(__dirname, '../.env.local') });
 
-const BASE_URL = 'http://localhost:3002';
+const BASE_URL = 'https://ainutrition.epnstore.com.ar';
 
 async function main() {
     const browser = await chromium.launch({ headless: true });

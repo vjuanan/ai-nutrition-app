@@ -113,6 +113,7 @@ export default function OnboardingPage() {
     const [step, setStep] = useState(0);
     const [role, setRole] = useState<'patient' | 'nutritionist' | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
 
     // Patient Form State
     const [patientData, setPatientData] = useState({
@@ -161,26 +162,70 @@ export default function OnboardingPage() {
         return arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item];
     };
 
+    const extractUnknownColumn = (errorMessage: string, allowedKeys: string[]) => {
+        const patterns = [
+            /could not find the ['"]?([a-zA-Z0-9_]+)['"]?\s+column/i,
+            /'([a-zA-Z0-9_]+)'\s+column/i,
+            /column\s+["']([a-zA-Z0-9_]+)["']/i,
+            /column\s+([a-zA-Z0-9_]+)/i,
+        ];
+
+        for (const pattern of patterns) {
+            const match = errorMessage.match(pattern);
+            const column = match?.[1];
+            if (column && allowedKeys.includes(column)) return column;
+        }
+
+        return null;
+    };
+
+    const updateProfileWithFallback = async (userId: string, payload: Record<string, any>) => {
+        let currentPayload = { ...payload };
+
+        for (let attempt = 0; attempt < 10; attempt += 1) {
+            const { error } = await supabase
+                .from('profiles')
+                .update(currentPayload)
+                .eq('id', userId);
+
+            if (!error) return null;
+
+            const unknownColumn = extractUnknownColumn(error.message || '', Object.keys(currentPayload));
+            if (!unknownColumn || !(unknownColumn in currentPayload)) {
+                return error;
+            }
+
+            const { [unknownColumn]: _removed, ...rest } = currentPayload;
+            currentPayload = rest;
+        }
+
+        return new Error('Profile update fallback exceeded attempts');
+    };
+
     // Save Patient to DB
     const savePatientProfile = async () => {
+        setSaveError(null);
         setIsLoading(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+            if (!user) {
+                setSaveError('No se encontró sesión activa.');
+                return false;
+            }
 
             const { avatar_url, ...dataToSave } = patientData;
-            const { error } = await supabase
-                .from('profiles')
-                .update({
-                    ...dataToSave,
-                    medical_conditions: dataToSave.medical_conditions,
-                    food_allergies: dataToSave.food_allergies,
-                })
-                .eq('id', user.id);
+            const error = await updateProfileWithFallback(user.id, {
+                ...dataToSave,
+                medical_conditions: dataToSave.medical_conditions,
+                food_allergies: dataToSave.food_allergies,
+            });
 
             if (error) throw error;
+            return true;
         } catch (error) {
             console.error('Error saving patient:', error);
+            setSaveError('No se pudieron guardar los datos. Revisa los campos e intenta de nuevo.');
+            return false;
         } finally {
             setIsLoading(false);
         }
@@ -188,23 +233,27 @@ export default function OnboardingPage() {
 
     // Save Nutritionist to DB
     const saveNutritionistProfile = async () => {
+        setSaveError(null);
         setIsLoading(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+            if (!user) {
+                setSaveError('No se encontró sesión activa.');
+                return false;
+            }
 
             const { avatar_url, ...dataToSave } = nutritionistData;
-            const { error } = await supabase
-                .from('profiles')
-                .update({
-                    ...dataToSave,
-                    approach: dataToSave.approach,
-                })
-                .eq('id', user.id);
+            const error = await updateProfileWithFallback(user.id, {
+                ...dataToSave,
+                approach: dataToSave.approach,
+            });
 
             if (error) throw error;
+            return true;
         } catch (error) {
             console.error('Error saving nutritionist:', error);
+            setSaveError('No se pudieron guardar los datos. Revisa los campos e intenta de nuevo.');
+            return false;
         } finally {
             setIsLoading(false);
         }
@@ -212,6 +261,7 @@ export default function OnboardingPage() {
 
     const handleRoleSelect = async (selectedRole: 'patient' | 'nutritionist') => {
         setIsLoading(true);
+        setSaveError(null);
         setRole(selectedRole);
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -226,6 +276,7 @@ export default function OnboardingPage() {
 
     const finishOnboarding = async (redirectTo: string) => {
         setIsLoading(true);
+        setSaveError(null);
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
@@ -251,12 +302,14 @@ export default function OnboardingPage() {
             router.push(redirectTo);
         } catch (e) {
             console.error(e);
+            setSaveError('No se pudo finalizar el onboarding. Intenta nuevamente.');
         }
         setIsLoading(false);
     };
 
     const nextPatientStep = async () => {
-        await savePatientProfile();
+        const saved = await savePatientProfile();
+        if (!saved) return;
         if (step === 6) {
             await finishOnboarding('/');
         } else {
@@ -265,7 +318,8 @@ export default function OnboardingPage() {
     };
 
     const nextNutritionistStep = async () => {
-        await saveNutritionistProfile();
+        const saved = await saveNutritionistProfile();
+        if (!saved) return;
         if (step === 5) {
             await finishOnboarding('/');
         } else {
@@ -808,6 +862,11 @@ export default function OnboardingPage() {
                             <div className="flex-1 overflow-y-auto max-h-[60vh] pr-1">
                                 {isNutritionist ? renderNutritionistStep() : renderPatientStep()}
                             </div>
+                            {saveError && (
+                                <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                                    {saveError}
+                                </div>
+                            )}
 
                             {/* Navigation Buttons */}
                             <div className="flex justify-between mt-8 pt-6 border-t border-gray-50">

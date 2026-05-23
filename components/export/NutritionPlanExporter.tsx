@@ -9,7 +9,6 @@ import {
     FileText,
     Image as ImageIcon,
     Loader2,
-    Target,
     X
 } from 'lucide-react';
 import type { DraftDay } from '@/lib/store';
@@ -20,6 +19,12 @@ interface NutritionPlanExporterProps {
     onClose: () => void;
     planName: string;
     days: DraftDay[];
+    branding?: {
+        logoUrl?: string | null;
+        palettePrimary?: string | null;
+        paletteSecondary?: string | null;
+        exportDate?: string | null;
+    } | null;
 }
 
 type ExportFormat = 'png' | 'pdf';
@@ -36,6 +41,13 @@ const EXPORT_COLORS = {
 
 const MOBILE_EXPORT_WIDTH = 430;
 const PDF_MARGIN = 18;
+
+const DEFAULT_BRANDING = {
+    logoUrl: null as string | null,
+    palettePrimary: '#0ea5e9',
+    paletteSecondary: '#10b981',
+    exportDate: '',
+};
 
 type MealMetrics = {
     id: string;
@@ -98,6 +110,28 @@ function sanitizeFilename(name: string) {
         .trim()
         .replace(/\s+/g, '-')
         .toLowerCase();
+}
+
+function normalizeHexColor(value: string | null | undefined, fallback: string) {
+    if (!value) return fallback;
+    const normalized = value.trim();
+    return /^#[0-9a-fA-F]{6}$/.test(normalized) ? normalized.toLowerCase() : fallback;
+}
+
+function formatExportDate(value: string | null | undefined) {
+    if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const date = new Date(`${value}T00:00:00`);
+        return date.toLocaleDateString('es-AR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    }
+    return new Date().toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
 }
 
 async function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
@@ -177,10 +211,22 @@ async function exportPdfFromCanvas(canvas: HTMLCanvasElement, filename: string) 
     pdf.save(filename);
 }
 
-export function NutritionPlanExporter({ isOpen, onClose, planName, days }: NutritionPlanExporterProps) {
+export function NutritionPlanExporter({ isOpen, onClose, planName, days, branding }: NutritionPlanExporterProps) {
     const exportRef = useRef<HTMLDivElement>(null);
     const [isExporting, setIsExporting] = useState(false);
     const [format, setFormat] = useState<ExportFormat>('pdf');
+
+    const resolvedBranding = useMemo(() => ({
+        logoUrl: branding?.logoUrl?.trim() || DEFAULT_BRANDING.logoUrl,
+        palettePrimary: normalizeHexColor(branding?.palettePrimary, DEFAULT_BRANDING.palettePrimary),
+        paletteSecondary: normalizeHexColor(branding?.paletteSecondary, DEFAULT_BRANDING.paletteSecondary),
+        exportDate: branding?.exportDate || DEFAULT_BRANDING.exportDate,
+    }), [branding]);
+
+    const exportDateLabel = useMemo(
+        () => formatExportDate(resolvedBranding.exportDate),
+        [resolvedBranding.exportDate]
+    );
 
     useEffect(() => {
         if (!isOpen) return;
@@ -509,18 +555,53 @@ export function NutritionPlanExporter({ isOpen, onClose, planName, days }: Nutri
                                 <div
                                     style={{
                                         marginTop: '14px',
-                                        fontSize: '10px',
-                                        color: EXPORT_COLORS.textMuted,
+                                        border: `1px solid ${EXPORT_COLORS.border}`,
+                                        borderRadius: '12px',
+                                        padding: '10px',
+                                        backgroundColor: EXPORT_COLORS.cardBg,
                                         display: 'grid',
-                                        gap: '6px',
+                                        gap: '10px',
                                     }}
                                 >
-                                    <span>Generado desde AI Nutrition</span>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <Target size={12} color={EXPORT_COLORS.accent} />
-                                        Objetivo dinámico por día (kcal + proteína)
-                                    </span>
-                                    <span>{new Date().toLocaleString()}</span>
+                                    <div style={{ fontSize: '10px', color: EXPORT_COLORS.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                        Identidad clínica
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: '10px' }}>
+                                        {resolvedBranding.logoUrl ? (
+                                            <img
+                                                src={resolvedBranding.logoUrl}
+                                                alt="Logo clínica"
+                                                style={{
+                                                    width: '38px',
+                                                    height: '38px',
+                                                    borderRadius: '10px',
+                                                    objectFit: 'cover',
+                                                    border: `1px solid ${EXPORT_COLORS.border}`,
+                                                }}
+                                            />
+                                        ) : (
+                                            <div
+                                                style={{
+                                                    width: '38px',
+                                                    height: '38px',
+                                                    borderRadius: '10px',
+                                                    border: `1px solid ${EXPORT_COLORS.border}`,
+                                                    background: `linear-gradient(135deg, ${resolvedBranding.palettePrimary}, ${resolvedBranding.paletteSecondary})`,
+                                                }}
+                                            />
+                                        )}
+
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ fontSize: '11px', color: EXPORT_COLORS.textSecondary }}>Paleta</span>
+                                            <span style={{ width: '18px', height: '18px', borderRadius: '999px', backgroundColor: resolvedBranding.palettePrimary, border: `1px solid ${EXPORT_COLORS.border}` }} />
+                                            <span style={{ width: '18px', height: '18px', borderRadius: '999px', backgroundColor: resolvedBranding.paletteSecondary, border: `1px solid ${EXPORT_COLORS.border}` }} />
+                                        </div>
+
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontSize: '10px', color: EXPORT_COLORS.textMuted }}>Fecha</div>
+                                            <div style={{ fontSize: '11px', fontWeight: 700, color: EXPORT_COLORS.textSecondary }}>{exportDateLabel}</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

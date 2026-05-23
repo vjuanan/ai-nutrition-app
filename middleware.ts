@@ -1,6 +1,7 @@
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { resolveAppRole } from './lib/rbac'
 
 // Timeout helper to prevent middleware from hanging indefinitely
 function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
@@ -127,7 +128,7 @@ export async function middleware(request: NextRequest) {
                 if (parts.length >= 2) {
                     const [cookieUserId, cookieRole, cookieStatus] = parts;
                     // Verify the cookie belongs to the current user
-                    if (cookieUserId === user.id && ['coach', 'athlete', 'admin', 'gym', 'patient', 'nutritionist'].includes(cookieRole)) {
+                    if (cookieUserId === user.id && ['coach', 'athlete', 'admin', 'gym', 'patient', 'nutritionist', 'superadmin'].includes(cookieRole)) {
                         role = cookieRole;
                         if (cookieStatus === 'true') {
                             onboardingCompleted = true;
@@ -186,11 +187,9 @@ export async function middleware(request: NextRequest) {
                 return response;
             }
 
-            const normalizedRole = role === 'admin'
-                ? 'admin'
-                : role === 'patient' || role === 'athlete'
-                    ? 'patient'
-                    : 'nutritionist';
+            const normalizedRole = role === 'superadmin'
+                ? 'superadmin'
+                : resolveAppRole(user.email, role as any);
 
             // SCENARIO A: Not Completed Onboarding -> Force Onboarding
             // Even if they have a role (e.g. default athlete), they must finish onboarding.
@@ -208,27 +207,41 @@ export async function middleware(request: NextRequest) {
 
             // SCENARIO C: Admin (Superuser)
             // Admins have access to everything. We don't block them.
-            if (normalizedRole === 'admin') {
+            if (normalizedRole === 'superadmin') {
                 return response;
             }
 
-            // SCENARIO D: Nutritionist checks
-            if (normalizedRole === 'nutritionist') {
-                if (path.startsWith('/admin/users')) {
+            if (path.startsWith('/administration') || path.startsWith('/admin/users')) {
+                return NextResponse.redirect(new URL('/', request.url));
+            }
+
+            const nutritionistAllowed =
+                path === '/' ||
+                path.startsWith('/patients') ||
+                path.startsWith('/foods') ||
+                path.startsWith('/meal-plans') ||
+                path.startsWith('/templates') ||
+                path.startsWith('/knowledge') ||
+                path.startsWith('/settings') ||
+                path.startsWith('/editor/');
+
+            const patientAllowed =
+                path === '/' ||
+                path.startsWith('/foods') ||
+                path.startsWith('/knowledge') ||
+                path.startsWith('/settings');
+
+            // SCENARIO D: Admin and Nutritionist checks
+            if (normalizedRole === 'admin' || normalizedRole === 'nutritionist') {
+                if (!nutritionistAllowed) {
                     return NextResponse.redirect(new URL('/', request.url));
                 }
             }
 
             // SCENARIO E: Patient checks
             if (normalizedRole === 'patient') {
-                const canAccess =
-                    path === '/' ||
-                    path.startsWith('/settings') ||
-                    path.startsWith('/meal-plans') ||
-                    path.startsWith('/editor/');
-
-                if (!canAccess) {
-                    return NextResponse.redirect(new URL('/meal-plans', request.url));
+                if (!patientAllowed) {
+                    return NextResponse.redirect(new URL('/', request.url));
                 }
             }
         }

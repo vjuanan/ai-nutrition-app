@@ -21,45 +21,32 @@ interface NavItem {
     label: string;
     href: string;
     icon: React.ReactNode;
+    roles: Array<'superadmin' | 'admin' | 'nutritionist' | 'patient'>;
 }
 
-// Unified nav items - no more context filtering
+// Unified nav items with role gating.
 const navItems: NavItem[] = [
-    { label: 'Mi Panel', href: '/', icon: <LayoutDashboard size={20} /> },
-    { label: 'Pacientes', href: '/patients', icon: <Users size={20} /> },
-    { label: 'Clínicas', href: '/clinics', icon: <Building2 size={20} /> },
-    { label: 'Alimentos', href: '/foods', icon: <Dumbbell size={20} /> }, // Was Exercises
-    { label: 'Planes', href: '/meal-plans', icon: <FileText size={20} /> }, // Was Programs
-    { label: 'Plantillas', href: '/templates', icon: <FileText size={20} /> }, // Assuming templates route based on screenshot icon
-    { label: 'Conocimiento', href: '/knowledge', icon: <BookOpen size={20} /> },
-    { label: 'Perfil', href: '/settings', icon: <UserCircle2 size={20} /> },
-    { label: 'Usuarios', href: '/admin/users', icon: <Shield size={20} /> },
+    { label: 'Mi Panel', href: '/', icon: <LayoutDashboard size={20} />, roles: ['superadmin', 'admin', 'nutritionist', 'patient'] },
+    { label: 'Pacientes', href: '/patients', icon: <Users size={20} />, roles: ['superadmin', 'admin', 'nutritionist'] },
+    { label: 'Clínicas', href: '/clinics', icon: <Building2 size={20} />, roles: ['superadmin', 'admin'] },
+    { label: 'Alimentos', href: '/foods', icon: <Dumbbell size={20} />, roles: ['superadmin', 'admin', 'nutritionist', 'patient'] },
+    { label: 'Planes', href: '/meal-plans', icon: <FileText size={20} />, roles: ['superadmin', 'admin', 'nutritionist'] },
+    { label: 'Plantillas', href: '/templates', icon: <FileText size={20} />, roles: ['superadmin', 'admin', 'nutritionist'] },
+    { label: 'Conocimiento', href: '/knowledge', icon: <BookOpen size={20} />, roles: ['superadmin', 'admin', 'nutritionist', 'patient'] },
+    { label: 'Perfil', href: '/settings', icon: <UserCircle2 size={20} />, roles: ['superadmin', 'admin', 'nutritionist', 'patient'] },
+    { label: 'Administración', href: '/administration', icon: <Shield size={20} />, roles: ['superadmin'] },
 ];
 
 interface SidebarProps {
     /** Role passed from server - NO async loading, immediate render */
-    role?: 'admin' | 'nutritionist' | 'patient';
+    role?: 'superadmin' | 'admin' | 'nutritionist' | 'patient';
 }
 
 export function Sidebar({ role = 'nutritionist' }: SidebarProps) {
     const { isSidebarCollapsed, toggleSidebar } = useAppStore();
     const pathname = usePathname();
 
-    // Filter Items based on Role - role is passed from server, no loading state!
-    const filteredNavItems = navItems.filter(item => {
-        if (role === 'admin') return true; // See all
-
-        if (role === 'nutritionist') {
-            // Nutritionist can see everything except users admin area.
-            return !item.href.startsWith('/admin');
-        }
-
-        if (role === 'patient') {
-            // Patient can only navigate profile + assigned plans.
-            return ['/', '/meal-plans', '/settings'].includes(item.href);
-        }
-        return true; // Fallback: show item
-    });
+    const filteredNavItems = navItems.filter(item => item.roles.includes(role));
 
     return (
         <aside

@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { cookies } from 'next/headers';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { resolveAppRole } from '@/lib/rbac';
 
 export async function refreshUserRoleReference() {
     const supabase = createServerClient();
@@ -17,7 +18,7 @@ export async function refreshUserRoleReference() {
         .eq('id', user.id)
         .single();
 
-    const role = profile?.role;
+    const role = resolveAppRole(user.email, profile?.role);
     const onboardingCompleted = profile?.onboarding_completed ?? false;
 
     if (role) {
@@ -65,7 +66,7 @@ export async function login(formData: FormData) {
             .eq('id', user.id)
             .single();
 
-        const role = profile?.role;
+        const role = resolveAppRole(user.email, profile?.role);
         const onboardingCompleted = profile?.onboarding_completed ?? false;
 
         if (role) {

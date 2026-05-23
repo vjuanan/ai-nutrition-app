@@ -53,6 +53,7 @@ export interface Client {
     email: string;
     full_name?: string;
     name: string;
+    logo_url?: string | null;
     status: 'active' | 'inactive' | 'pending';
     type: 'patient' | 'clinic' | 'athlete' | 'gym';
 
@@ -70,6 +71,8 @@ export interface NutritionalPlan {
     name: string;
     description: string | null;
     type: string | null; // Keto, Paleo...
+    objective?: string | null;
+    metadata?: Record<string, any> | null;
     is_active: boolean;
 
     client_id?: string | null;
@@ -171,9 +174,9 @@ export interface TrainingMethodology {
 }
 
 // Legacy mappings/aliases to help refactor (Optional, remove if confident)
-// export type Program = NutritionalPlan;
-// export type Day = PlanDay;
-// export type WorkoutBlock = Meal;
+export type Program = NutritionalPlan;
+export type Day = PlanDay;
+export type WorkoutBlock = Meal;
 
 // Supabase Database Type
 export interface Database {

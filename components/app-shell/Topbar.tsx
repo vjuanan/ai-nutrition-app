@@ -54,6 +54,7 @@ export function Topbar({ title, actions, prefixActions, filters }: TopbarProps) 
                             <input
                                 type="text"
                                 placeholder={
+                                    pathname.includes('/administration') || pathname.includes('/admin/users') ? 'Buscar usuarios...' :
                                     pathname.includes('/patients') || pathname.includes('/athletes') ? 'Buscar pacientes...' :
                                         pathname.includes('/clinics') || pathname.includes('/gyms') ? 'Buscar clínicas...' :
                                             pathname.includes('/foods') ? 'Buscar alimentos...' :
