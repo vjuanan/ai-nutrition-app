@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '@/lib/context/AppContext';
 import { Utensils, Plus, Trash2, BookOpen, Apple, Info, Check, Save, Printer, ClipboardList, Users } from 'lucide-react';
 import PrintablePlan from '@/components/builder/PrintablePlan';
@@ -12,6 +12,15 @@ export default function BuilderPage() {
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [activeTargetMealId, setActiveTargetMealId] = useState<string | null>(null);
     const [selectedClinicId, setSelectedClinicId] = useState(currentPlan?.clinicId || '');
+
+    useEffect(() => {
+        if (currentPlan?.days?.length > 0) {
+            const firstDay = currentPlan.days[0];
+            if (firstDay && firstDay.id !== selectedDayId && selectedDayId === 'day_1') {
+                setSelectedDayId(firstDay.id);
+            }
+        }
+    }, [currentPlan, selectedDayId]);
 
     const activePatient = patients.find((p) => p.id === activePatientId) || patients[0] || {
         id: 'fallback_patient',
@@ -356,7 +365,7 @@ export default function BuilderPage() {
                                     : 'bg-white text-slate-700 border-olive-200 hover:bg-olive-50/50 hover:text-slate-900'
                             }`}
                         >
-                            {day.name}
+                            {day.name || `Día ${day.dayNumber}`}
                         </button>
 
                     ))}
