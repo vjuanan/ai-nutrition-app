@@ -126,18 +126,11 @@ export async function middleware(request: NextRequest) {
                 // Format: userId:role:onboardingCompleted
                 const parts = roleCookie.value.split(':');
                 if (parts.length >= 2) {
-                    const [cookieUserId, cookieRole, cookieStatus] = parts;
+                    const [cookieUserId, cookieRole] = parts;
                     // Verify the cookie belongs to the current user
-                    if (cookieUserId === user.id && ['coach', 'athlete', 'admin', 'gym', 'patient', 'nutritionist', 'superadmin'].includes(cookieRole)) {
+                    if (cookieUserId === user.id && ['coach', 'athlete', 'admin', 'gym', 'patient', 'nutritionist', 'superadmin', 'clinic'].includes(cookieRole)) {
                         role = cookieRole;
-                        if (cookieStatus === 'true') {
-                            onboardingCompleted = true;
-                        } else if (cookieStatus === 'false') {
-                            onboardingCompleted = false;
-                        } else {
-                            // Old cookie format, force fetch
-                            role = null;
-                        }
+                        onboardingCompleted = true;
                     }
                 }
             }
@@ -148,7 +141,7 @@ export async function middleware(request: NextRequest) {
                     Promise.resolve(
                         supabase
                             .from('profiles')
-                            .select('role, onboarding_completed')
+                            .select('role')
                             .eq('id', user.id)
                             .single()
                     ),
@@ -158,11 +151,11 @@ export async function middleware(request: NextRequest) {
                 const profile = profileResult.data;
 
                 role = profile?.role;
-                onboardingCompleted = profile?.onboarding_completed ?? false;
+                onboardingCompleted = true;
 
                 // Cache the role for future requests
                 if (role) {
-                    const cookieValue = `${user.id}:${role}:${onboardingCompleted}`;
+                    const cookieValue = `${user.id}:${role}:true`;
                     // Set in response to client
                     response.cookies.set({
                         name: 'user_role',

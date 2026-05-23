@@ -34,16 +34,14 @@ export async function GET(request: Request) {
             // Check if user has completed onboarding
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('role, onboarding_completed')
+                .select('role')
                 .eq('id', data.user.id)
                 .single();
 
             const role = resolveAppRole(data.user.email, profile?.role);
-            const onboardingCompleted = profile?.onboarding_completed ?? false;
+            const onboardingCompleted = true;
 
-            if (!onboardingCompleted) {
-                next = '/onboarding';
-            } else if (role === 'patient') {
+            if (role === 'patient') {
                 next = '/';
             } else if (role === 'nutritionist') {
                 next = '/';
