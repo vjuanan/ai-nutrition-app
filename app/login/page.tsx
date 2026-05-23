@@ -67,11 +67,7 @@ export default function LoginPage() {
                 throw new Error(result.error);
             }
 
-            if (result.needsOnboarding) {
-                router.push('/onboarding');
-            } else {
-                router.push('/');
-            }
+            router.push('/');
             router.refresh();
         } catch (err: any) {
             setError(err.message || 'Error al iniciar sesión');
