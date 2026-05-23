@@ -26,7 +26,7 @@ interface NavItem {
 
 // Unified nav items with role gating.
 const navItems: NavItem[] = [
-    { label: 'Mi Panel', href: '/', icon: <LayoutDashboard size={20} />, roles: ['superadmin', 'admin', 'nutritionist', 'patient'] },
+    { label: 'Mi Panel', href: '/home', icon: <LayoutDashboard size={20} />, roles: ['superadmin', 'admin', 'nutritionist', 'patient'] },
     { label: 'Pacientes', href: '/patients', icon: <Users size={20} />, roles: ['superadmin', 'admin', 'nutritionist'] },
     { label: 'Clínicas', href: '/clinics', icon: <Building2 size={20} />, roles: ['superadmin', 'admin'] },
     { label: 'Alimentos', href: '/foods', icon: <Dumbbell size={20} />, roles: ['superadmin', 'admin', 'nutritionist', 'patient'] },

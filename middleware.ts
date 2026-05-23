@@ -107,7 +107,7 @@ export async function middleware(request: NextRequest) {
         const isOnboardingPage = path.startsWith('/onboarding');
 
         // 3. Auth Protection
-        if (!user && !isAuthPage) {
+        if (!user && !isAuthPage && path !== '/') {
             return NextResponse.redirect(new URL('/login', request.url));
         }
 
@@ -217,6 +217,8 @@ export async function middleware(request: NextRequest) {
 
             const nutritionistAllowed =
                 path === '/' ||
+                path === '/home' ||
+                path.startsWith('/home/') ||
                 path.startsWith('/patients') ||
                 path.startsWith('/foods') ||
                 path.startsWith('/meal-plans') ||
@@ -227,6 +229,8 @@ export async function middleware(request: NextRequest) {
 
             const patientAllowed =
                 path === '/' ||
+                path === '/home' ||
+                path.startsWith('/home/') ||
                 path.startsWith('/foods') ||
                 path.startsWith('/knowledge') ||
                 path.startsWith('/settings');
