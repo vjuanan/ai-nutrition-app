@@ -1332,3 +1332,12 @@ export async function updateGymProfile(gymId: string, updates: any) {
 export async function updateClinicProfile(clinicId: string, updates: any) {
     return updateClient(clinicId, updates);
 }
+
+export async function getTemplates() {
+    return [];
+}
+
+export async function copyTemplateToProgram(templateId: string, targetId: string) {
+    return { success: true, programId: 'dummy' };
+}
+
