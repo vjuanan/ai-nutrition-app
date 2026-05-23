@@ -23,10 +23,12 @@
 - [ ] Quick-select buttons para cantidades
 - [ ] Footer: Eliminar + Listo
 
-## Fase 6: Rediseñar MealBuilderPanel
-- [ ] Rehacer layout: palette izquierda + área de bloques derecha
-- [ ] Integrar drag-and-drop entre palette y área de bloques
-- [ ] Eliminar "Nueva Comida" y "Añadir alimento" en-line
+## Fase 6: Rediseño Premium Ultra-Compacto e Iconografía (UX/UI de Lujo)
+- [ ] Rediseñar cabecera del Builder a una sola fila horizontal ultra-compacta (eliminar títulos `3xl` y subtítulos descriptivos).
+- [ ] Reemplazar botones de texto por botones de iconos interactivos estilizados (Exportar, Guardar, etc.).
+- [ ] Eliminar etiquetas textuales redundantes ("Asignar a:", "Consultorio:") a favor de iconos limpios integrados.
+- [ ] Rediseñar biblioteca lateral y panel de macronutrientes para maximizar el área útil del canvas del planificador.
+- [ ] Limpiar aclaraciones y textos auxiliares en todas las secciones del dashboard.
 
 ## Fase 7: Verificación
 - [ ] Build local exitoso
