@@ -73,6 +73,7 @@ export interface NutritionalPlan {
     type: string | null; // Keto, Paleo...
     objective?: string | null;
     metadata?: Record<string, any> | null;
+    attributes?: any;
     is_active: boolean;
 
     client_id?: string | null;

@@ -303,6 +303,8 @@ export async function createNutritionalPlan(
         endDate?: string;
         duration?: number;
         weeklyFocusLabels?: string[];
+        clinicName?: string;
+        exportBranding?: any;
     }
 ) {
     const supabase = createServerClient();
@@ -334,7 +336,14 @@ export async function createNutritionalPlan(
                 description: finalDescription || null,
                 type: options?.type || null,
                 is_active: true,
-                client_id: clientId || null
+                client_id: clientId || null,
+                metadata: {
+                    clinicName: options?.clinicName,
+                    exportBranding: options?.exportBranding,
+                    weeklyFocusLabels: options?.weeklyFocusLabels,
+                    startDate: options?.startDate,
+                    duration: options?.duration
+                }
             })
             .select()
             .single();
@@ -1404,7 +1413,12 @@ export async function getPlanSetupDefaults() {
         calories: 2000,
         protein: 150,
         carbs: 200,
-        fats: 70
+        fats: 70,
+        clinicName: 'Clínica Nutricional',
+        logoUrl: 'https://ainutrition.epnstore.com.ar/logo.png',
+        palettePrimary: '#10b981',
+        paletteSecondary: '#0ea5e9',
+        exportDate: new Date().toISOString().split('T')[0]
     };
 }
 

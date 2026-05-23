@@ -202,7 +202,7 @@ export function TemplateGrid({ templates, athletes, gyms }: TemplateGridProps) {
                                 {/* Methodology Tags */}
                                 {attrs?.methodology && attrs.methodology.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mb-4">
-                                        {attrs.methodology.slice(0, 3).map((method, idx) => (
+                                        {attrs.methodology.slice(0, 3).map((method: any, idx: number) => (
                                             <span
                                                 key={idx}
                                                 className={`px-2 py-0.5 rounded-md bg-black/20 text-xs ${textColor} opacity-80`}
