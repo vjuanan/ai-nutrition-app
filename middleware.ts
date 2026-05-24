@@ -218,6 +218,7 @@ export async function middleware(request: NextRequest) {
                 path.startsWith('/templates') ||
                 path.startsWith('/knowledge') ||
                 path.startsWith('/settings') ||
+                path.startsWith('/builder') ||
                 path.startsWith('/editor/');
 
             const patientAllowed =
@@ -226,7 +227,8 @@ export async function middleware(request: NextRequest) {
                 path.startsWith('/home/') ||
                 path.startsWith('/foods') ||
                 path.startsWith('/knowledge') ||
-                path.startsWith('/settings');
+                path.startsWith('/settings') ||
+                path.startsWith('/builder');
 
             // SCENARIO D: Admin and Nutritionist checks
             if (normalizedRole === 'admin' || normalizedRole === 'nutritionist') {
